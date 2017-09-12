@@ -170,7 +170,7 @@ public class MazeChaos extends JFrame {
 			gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_FILL);
 			renderer.beginRendering(gLDrawable.getSurfaceWidth(), gLDrawable.getSurfaceHeight());
 		    renderer.setColor(0.0f, 1.0f, 0.0f, 0.8f);
-		    renderer.draw("FPS: w"+gLDrawable.getAnimator().getLastFPS(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
+		    renderer.draw("FPS: "+gLDrawable.getAnimator().getLastFPS(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
 			renderer.draw("Player: xPos="+player.getAppliedObject().getCamX()+", yPos="+player.getAppliedObject().getCamY()+", zPos="+player.getAppliedObject().getCamZ()+", airborne="+player.getAppliedObject().isAirborne(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
 		    renderer.draw("Player: vx="+player.getAppliedObject().getVX()+", vy="+player.getAppliedObject().getVY()+", vz="+player.getAppliedObject().getVZ(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
 		    renderer.draw("Player: yAngle="+yAngle+", zAngle="+zAngle, 5, gLDrawable.getSurfaceHeight()-spacing*(++line));

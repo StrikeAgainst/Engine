@@ -9,6 +9,7 @@ public abstract class EngineObject{
 	protected float x, y, z, vx = 0, vy = 0, vz = 0, ya = 0, za = 60;
 	private float front, back, left, right, top, bottom;
 	protected boolean visible = true, showBounds = false;
+	protected BoundingBox bounds;
 	
 	public EngineObject(float xPos, float yPos, float zPos, float front, float back, float left, float right, float top, float bottom) {
 		this.x = xPos;
