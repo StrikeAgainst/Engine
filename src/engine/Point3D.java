@@ -27,6 +27,12 @@ public class Point3D {
 		return z;
 	}
 	
+	public void move(float x, float y, float z) {
+		this.x += x;
+		this.y += y;
+		this.z += z;
+	}
+	
 	public float distanceTo(Point3D point) {
 		float px = point.getX(), py = point.getY(), pz = point.getZ();
 		return (float) Math.sqrt(Math.pow(px-x, 2)+Math.pow(py-y, 2)+Math.pow(pz-z, 2));

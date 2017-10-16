@@ -151,13 +151,13 @@ public class MazeChaos extends JFrame {
 			glu.gluLookAt(camX, camY, camZ, lookX, lookY, lookZ, uSinZ*cosY, uSinZ*sinY, -uCosZ);
 
 			newTick = System.currentTimeMillis();
-			double period = (double)(newTick-lastTick)/1000;
+			double tick = (double)(newTick-lastTick)/1000;
 			lastTick = newTick;
 			for (EngineObject e : container) {
 				e.drawObject(gl, glut);
-				if (e instanceof PhysicsObject) ((PhysicsObject)e).move(period, tiles);
+				if (e instanceof PhysicsObject) ((PhysicsObject)e).move(tick);
 			}
-			if (!pause) player.move(period);
+			if (!pause) player.move(tick);
 			
 			float center = boardSize*panelSize/2;
 			gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT, new float[] {0.2f, 0.2f, 0.2f, 0.2f}, 0);

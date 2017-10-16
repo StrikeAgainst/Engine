@@ -6,21 +6,14 @@ import com.jogamp.opengl.util.gl2.GLUT;
 
 public abstract class EngineObject{
 
+	protected Point3D center;
 	protected float x, y, z, vx = 0, vy = 0, vz = 0, ya = 0, za = 60;
-	private float front, back, left, right, top, bottom;
 	protected boolean visible = true, showBounds = false;
 	protected BoundingBox bounds;
 	
-	public EngineObject(float xPos, float yPos, float zPos, float front, float back, float left, float right, float top, float bottom) {
-		this.x = xPos;
-		this.y = yPos;
-		this.z = zPos;
-		this.front = front;
-		this.back = back;
-		this.left = left;
-		this.right = right;
-		this.top = top;
-		this.bottom = bottom;
+	public EngineObject(Point3D center, BoundingBox bounds) {
+		this.center = center;
+		this.bounds = bounds;
 		ObjectContainer.get().add(this);
 	}
 	
@@ -35,37 +28,19 @@ public abstract class EngineObject{
 	
 	public void drawBounds(GL2 gl, GLUT glut) {
 		if (showBounds) {
+			Point3D[] points = bounds.getPoints();
 			gl.glColor3f(1f,0.55f,0f);
 			gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_LINE);
 			gl.glBegin(GL2.GL_QUAD_STRIP);
-			gl.glVertex3f(x+front, y+left, z+top);
-			gl.glVertex3f(x+front, y+left, z+bottom);
-			gl.glVertex3f(x+front, y+right, z+top);
-			gl.glVertex3f(x+front, y+right, z+bottom);
-			gl.glVertex3f(x+back, y+right, z+top);
-			gl.glVertex3f(x+back, y+right, z+bottom);
-			gl.glVertex3f(x+back, y+left, z+top);
-			gl.glVertex3f(x+back, y+left, z+bottom);
-			gl.glVertex3f(x+front, y+left, z+top);
-			gl.glVertex3f(x+front, y+left, z+bottom);
+			for (int i = 0; i < points.length; i++) {
+				gl.glVertex3f(points[i].getX(), points[i].getY(), points[i].getZ());
+			}
 			gl.glEnd();
 		}
 	};
 	
-	public boolean inside(float ox, float oy, float oz) {
-		return (ox < x+front && ox > x+back && oy < y+left && oy > y+right && oz < z+top && oz > z+bottom);
-	}
-	
-	public boolean crossing(EngineObject o) {
-		if (inside(x+front, y+left, z+top)) return true;
-		if (inside(x+front, y+left, z+bottom)) return true;
-		if (inside(x+front, y+right, z+top)) return true;
-		if (inside(x+front, y+right, z+bottom)) return true;
-		if (inside(x+back, y+left, z+top)) return true;
-		if (inside(x+back, y+left, z+bottom)) return true;
-		if (inside(x+back, y+right, z+top)) return true;
-		if (inside(x+back, y+right, z+bottom)) return true;
-		return false;
+	public Point3D getCenter() {
+		return center;
 	}
 	
 	public float getX() {
@@ -73,7 +48,7 @@ public abstract class EngineObject{
 	}
 	
 	public void setX(float x) {
-		this.x = x;
+		center = new Point;
 	}
 	
 	public float getY() {
@@ -132,28 +107,8 @@ public abstract class EngineObject{
 		this.za = za;
 	}
 	
-	public float getFrontBound() {
-		return front;
-	}
-	
-	public float getBackBound() {
-		return back;
-	}
-	
-	public float getLeftBound() {
-		return left;
-	}
-	
-	public float getRightBound() {
-		return right;
-	}
-	
-	public float getTopBound() {
-		return top;
-	}
-	
-	public float getBottomBound() {
-		return bottom;
+	public BoundingBox getBounds(){
+		return bounds;
 	}
 	
 	public void setVisible() {

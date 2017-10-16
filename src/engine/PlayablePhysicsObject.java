@@ -2,8 +2,8 @@ package engine;
 
 public abstract class PlayablePhysicsObject extends PhysicsObject {
 	
-	public PlayablePhysicsObject(float xPos, float yPos, float zPos, float front, float back, float left, float right, float top, float bottom) {
-		super(xPos, yPos, zPos, front, back, left, right, top, bottom);
+	public PlayablePhysicsObject(float xPos, float yPos, float zPos, BoundingBox bounds) {
+		super(xPos, yPos, zPos, bounds);
 	}
 	
 	public abstract float getCamX();

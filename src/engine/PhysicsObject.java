@@ -1,42 +1,25 @@
 package engine;
 
-import java.util.ArrayList;
-
 public abstract class PhysicsObject extends EngineObject {
 
 	public final static float g = -9.81f;
 	
-	public PhysicsObject(float xPos, float yPos, float zPos, float front, float back, float left, float right, float top, float bottom) {
-		super(xPos, yPos, zPos, front, back, left, right, top, bottom);
+	public PhysicsObject(Point3D center, BoundingBox bounds) {
+		super(center, bounds);
 	}
 	
-	public Tile onTile(double period, ArrayList<Tile> tiles) {
-		float x, y, z, s;
-		for (Tile t : tiles) {
-			x = t.getX();
-			y = t.getY();
-			z = t.getZ();
-			s = t.getSize();
-			if (this.x-0.15f < x+s/2 && this.x+0.15f > x-s/2 && this.y-0.15f < y+s/2 && this.y+0.15f > y-s/2 && vz*period+this.z <= z && this.z >= z) return t;
-		}
-		return null;
-	}
-	
-	public void move(double period, ArrayList<Tile> tiles) {
-		this.vz += (float)(PhysicsObject.g*period);
+	public void move(double tick) {
+		this.vz += (float)(PhysicsObject.g*tick);
+		boolean canMove = true;
 		for (EngineObject e : ObjectContainer.get()) {
-			if (e.crossing(this)) {
-				
-			}
+			if (bounds.intersect(e.getBounds())) canMove = false;
 		}
-		Tile t = onTile(period, tiles);
-		if (t != null) {
-			this.z = t.getZ();
+		if (!canMove) {
+			this.vx = 0;
+			this.vy = 0;
 			this.vz = 0;
 		}
-		this.x += this.vx*period;
-		this.y += this.vy*period;
-		this.z += this.vz*period;
+		center.move(this.vx*tick, this.vy*tick, this.vz*tick);
 	}
 	
 	public boolean isAirborne() {

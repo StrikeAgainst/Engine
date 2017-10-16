@@ -4,8 +4,8 @@ public class SphericalBoundingBox extends BoundingBox {
 
 	private float radius;
 
-	public SphericalBoundingBox(Point3D center, float radius) {
-		super(center);
+	public SphericalBoundingBox(EngineObject anchor, float radius) {
+		super(anchor);
 		this.radius = radius;
 	}
 	

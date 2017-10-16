@@ -8,8 +8,8 @@ public class Pawn extends PlayablePhysicsObject {
 
 	private float bodyHeight, radius;
 			
-	public Pawn(float xPos, float yPos, float zPos, float bodyHeight, float radius) {
-		super(xPos, yPos, zPos, radius, -radius, radius, -radius, bodyHeight+radius, 0);
+	public Pawn(Point3D center, float bodyHeight, float radius) {
+		super(center, radius, -radius, radius, -radius, bodyHeight+radius, 0);
 		this.bodyHeight = bodyHeight;
 		this.radius = radius;
 	}
