@@ -7,8 +7,8 @@ import com.jogamp.opengl.util.gl2.GLUT;
 public abstract class EngineObject {
 
 	protected Point3D center;
-	protected float x, y, z, vx = 0, vy = 0, vz = 0, ya = 0, za = 60;
-	protected boolean visible = true, showBounds = false;
+	protected float vx = 0, vy = 0, vz = 0, ya = 0, za = 60;
+	protected boolean visible = true, showBounds = true;
 	protected BoundingBox bounds;
 	
 	public EngineObject(Point3D center) {
@@ -47,7 +47,7 @@ public abstract class EngineObject {
 	}
 	
 	public float getX() {
-		return x;
+		return center.getX();
 	}
 	
 	public void setX(float x) {
@@ -123,6 +123,6 @@ public abstract class EngineObject {
 	}
 	
 	public String toString() {
-		return "[x="+x+", y="+y+", z="+z+", vx="+vx+", vy="+vy+", vz="+vz+", ya="+ya+", za="+za+", z="+z+"]";
+		return "[x="+center.getX()+", y="+center.getY()+", z="+center.getZ()+", ya="+ya+", za="+za+"]";
 	}
 }

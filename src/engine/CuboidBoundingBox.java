@@ -65,5 +65,8 @@ public class CuboidBoundingBox extends BoundingBox {
 	public float getBottomBound() {
 		return bottom;
 	}
-
+	
+	public String toString() {
+		return "CBB:[anchor="+anchor.toString()+", front="+front+", back="+back+", left="+left+", right="+right+", top="+top+", bottom="+bottom+"]";
+	}
 }

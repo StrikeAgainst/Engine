@@ -6,11 +6,12 @@ import com.jogamp.opengl.util.gl2.GLUT;
 public class Wall extends EngineObject {
 	
 	private final float paddingScale = 2.4f;
-	private float x, y, z, width, height, shade = 0.5f;
+	private float width, height, shade = 0.5f;
 	private Polygon main, padding1, padding2;
 	
-	public Wall(float x, float y, float z, float width, float height, boolean vertical) {
-		super(x, y, z, (vertical?width/2:0.01f), (vertical?width/-2:-0.01f), (vertical?0.01f:width/2), (vertical?-0.01f:width/-2), height, 0);
+	public Wall(Point3D center, float width, float height, boolean vertical) {
+		super(center);
+		float x = center.getX(), y = center.getY(), z = center.getZ();
 		main = new Polygon(new Point3D[] {
 				new Point3D(x+(vertical?width/2:0), y+(vertical?0:width/2), z), 
 				new Point3D(x-(vertical?width/2:0), y+(vertical?0:width/2), z+(vertical?0:height)), 
@@ -40,27 +41,13 @@ public class Wall extends EngineObject {
 					new Point3D(x-0.01f, y-pwidth, z+height-margin), 
 					new Point3D(x-0.01f, y+pwidth, z+height-margin)});
 		}
-		this.x = x;
-		this.y = y;
-		this.z = z;
 		this.width = width;
 		this.setColor(shade, shade, shade);
+		applyBoundingBox(new CuboidBoundingBox(this, (vertical?width/2:0.01f), (vertical?width/-2:-0.01f), (vertical?0.01f:width/2), (vertical?-0.01f:width/-2), height, 0));
 	}
 	
-	public Wall(float x, float y, float z, boolean vertical) {
-		this(x, y, z, 0.5f, 1f, vertical);
-	}
-	
-	public float getX() {
-		return x;
-	}
-	
-	public float getY() {
-		return y;
-	}
-	
-	public float getZ() {
-		return z;
+	public Wall(Point3D center, boolean vertical) {
+		this(center, 0.5f, 1f, vertical);
 	}
 	
 	public float getWidth() {
@@ -81,5 +68,9 @@ public class Wall extends EngineObject {
 		main.draw(gl, glut);
 		padding1.draw(gl, glut);
 		padding2.draw(gl, glut);
+	}
+	
+	public String toString() {
+		return "Wall:"+super.toString();
 	}
 }

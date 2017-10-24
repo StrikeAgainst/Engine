@@ -3,6 +3,7 @@ package engine;
 public abstract class PhysicsObject extends EngineObject {
 
 	public final static float g = -9.81f;
+	boolean canMove = true;
 	
 	public PhysicsObject(Point3D center) {
 		super(center);
@@ -10,9 +11,12 @@ public abstract class PhysicsObject extends EngineObject {
 	
 	public void move(double tick) {
 		this.vz += (float)(PhysicsObject.g*tick);
-		boolean canMove = true;
+		canMove = true;
 		for (EngineObject e : ObjectContainer.get()) {
-			if (bounds.intersect(e.getBounds())) canMove = false;
+			if (bounds.intersect(e.getBounds())) {
+				System.out.println("Can't move!");
+				canMove = false;
+			}
 		}
 		if (!canMove) {
 			this.vx = 0;
@@ -24,5 +28,9 @@ public abstract class PhysicsObject extends EngineObject {
 	
 	public boolean isAirborne() {
 		return this.vz != 0;
+	}
+	
+	public String toString() {
+		return "[x="+center.getX()+", y="+center.getY()+", z="+center.getZ()+", vx="+vx+", vy="+vy+", vz="+vz+", ya="+ya+", za="+za+"]";
 	}
 }

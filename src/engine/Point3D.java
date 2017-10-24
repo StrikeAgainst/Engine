@@ -37,4 +37,8 @@ public class Point3D {
 		float px = point.getX(), py = point.getY(), pz = point.getZ();
 		return (float) Math.sqrt(Math.pow(px-x, 2)+Math.pow(py-y, 2)+Math.pow(pz-z, 2));
 	}
+	
+	public String toString() {
+		return "Point3D:[x="+x+", y="+y+", z="+z+"]";
+	}
 }

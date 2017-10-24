@@ -6,11 +6,12 @@ import com.jogamp.opengl.util.gl2.GLUT;
 public class Tile extends EngineObject {
 
 	private final float paddingScale = 2.1f;
-	private float x, y, z, size, shade = 0.8f;
+	private float size, shade = 0.8f;
 	private Polygon main, padding;
 	
-	public Tile(float x, float y, float z, float size) {
-		super(x, y, z, size/2, size/-2, size/2, size/-2, 0.01f, -0.01f);
+	public Tile(Point3D center, float size) {
+		super(center);
+		float x = center.getX(), y = center.getY(), z = center.getZ();
 		main = new Polygon(new Point3D[] {
 				new Point3D(x+size/2, y+size/2, z), 
 				new Point3D(x+size/2, y-size/2, z), 
@@ -21,27 +22,13 @@ public class Tile extends EngineObject {
 				new Point3D(x+size/paddingScale, y-size/paddingScale, z+0.01f), 
 				new Point3D(x-size/paddingScale, y-size/paddingScale, z+0.01f), 
 				new Point3D(x-size/paddingScale, y+size/paddingScale, z+0.01f)});
-		this.x = x;
-		this.y = y;
-		this.z = z;
 		this.size = size;
 		this.setColor(shade, shade, shade);
+		applyBoundingBox(new CuboidBoundingBox(this, size/2, size/-2, size/2, size/-2, 0.01f, -0.01f));
 	}
 	
-	public Tile(float x, float y, float z) {
-		this(x, y, z, 0.5f);
-	}
-	
-	public float getX() {
-		return x;
-	}
-	
-	public float getY() {
-		return y;
-	}
-	
-	public float getZ() {
-		return z;
+	public Tile(Point3D center) {
+		this(center, 0.5f);
 	}
 	
 	public float getSize() {
@@ -59,6 +46,6 @@ public class Tile extends EngineObject {
 	}
 	
 	public String toString() {
-		return "Tile[x="+x+", y="+y+",z="+z+"]";
+		return "Tile:"+super.toString();
 	}
 }

@@ -16,7 +16,7 @@ public class Pawn extends PlayablePhysicsObject {
 	}
 	
 	public void draw(GL2 gl, GLUT glut) {
-		gl.glTranslatef(x, y, z);
+		gl.glTranslatef(center.getX(), center.getY(), center.getZ());
 		gl.glRotatef(ya, 0.0f, 0.0f, 1.0f);
 		gl.glColor3f(0f,0.6f,0f);
 		gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_FILL);
@@ -24,22 +24,22 @@ public class Pawn extends PlayablePhysicsObject {
 		gl.glTranslatef(0.0f, 0.0f, bodyHeight);
 		glut.glutSolidSphere(radius, 12, 4);
 		gl.glRotatef(-ya, 0.0f, 0.0f, 1.0f);
-		gl.glTranslatef(-x, -y, -z-bodyHeight);
+		gl.glTranslatef(center.getX()*(-1), center.getY()*(-1), (center.getZ()+bodyHeight)*(-1));
 	}
 	
 	public float getCamX() {
-		return x;
+		return center.getX();
 	}
 	
 	public float getCamY() {
-		return y;
+		return center.getY();
 	}
 	
 	public float getCamZ() {
-		return z+bodyHeight;
+		return center.getZ()+bodyHeight;
 	}
 	
 	public String toString() {
-		return "Pawn: "+super.toString();
+		return "Pawn:"+super.toString();
 	}
 }

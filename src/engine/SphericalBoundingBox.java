@@ -33,4 +33,8 @@ public class SphericalBoundingBox extends BoundingBox {
 	public float getRadius() {
 		return radius;
 	}
+	
+	public String toString() {
+		return "CBB:[anchor="+anchor.toString()+", radius="+radius+"]";
+	}
 }

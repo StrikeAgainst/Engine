@@ -86,7 +86,7 @@ public class MazeChaos extends JFrame {
 			glut = new GLUT();
 			cm = CamMode.FP;
 			initMaze(boardSize);
-            player = new Player(new Pawn(0.25f,0.25f,0,0.4f,0.1f));
+            player = new Player(new Pawn(new Point3D(0.25f,0.25f,0),0.4f,0.1f));
             this.addKeyListener(this);
             this.addKeyListener(player);
             this.addMouseMotionListener(player);
@@ -231,21 +231,21 @@ public class MazeChaos extends JFrame {
 				for (int j = 0; j < size; j++) {
 					y = j*panelSize;
 					if (i == 0 && j == 0) {
-						Tile t = new Tile(x+half, y+half, 0.0f, panelSize);
+						Tile t = new Tile(new Point3D(x+half, y+half, 0.0f), panelSize);
 						t.setColor(0, 0, 0.5f);
 						tiles.add(t);
 					} else if (i == size-1 && j == size-1){
-						Tile t = new Tile(x+half, y+half, 0.0f, panelSize);
+						Tile t = new Tile(new Point3D(x+half, y+half, 0.0f), panelSize);
 						t.setColor(0, 0.5f, 0);
 						tiles.add(t);
 					} else if (random.nextInt(size) != 0) {
-						Tile t = new Tile(x+half, y+half, 0.0f, panelSize);
+						Tile t = new Tile(new Point3D(x+half, y+half, 0.0f), panelSize);
 						tiles.add(t);
 					}
-					if (m.getNorth()[j+1][i+1]) new Wall(x, y+half, 0.0f, panelSize, wallHeight, false);
-					if (m.getSouth()[j+1][i+1]) new Wall(x+panelSize, y+half, 0.0f, panelSize, wallHeight, false);
-					if (m.getWest()[j+1][i+1]) new Wall(x+half, y, 0.0f, panelSize, wallHeight, true);
-					if (m.getEast()[j+1][i+1]) new Wall(x+half, y+panelSize, 0.0f, panelSize, wallHeight, true);
+					if (m.getNorth()[j+1][i+1]) new Wall(new Point3D(x, y+half, 0.0f), panelSize, wallHeight, false);
+					if (m.getSouth()[j+1][i+1]) new Wall(new Point3D(x+panelSize, y+half, 0.0f), panelSize, wallHeight, false);
+					if (m.getWest()[j+1][i+1]) new Wall(new Point3D(x+half, y, 0.0f), panelSize, wallHeight, true);
+					if (m.getEast()[j+1][i+1]) new Wall(new Point3D(x+half, y+panelSize, 0.0f), panelSize, wallHeight, true);
 				}
 			}
 		}
