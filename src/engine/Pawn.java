@@ -9,9 +9,10 @@ public class Pawn extends PlayablePhysicsObject {
 	private float bodyHeight, radius;
 			
 	public Pawn(Point3D center, float bodyHeight, float radius) {
-		super(center, radius, -radius, radius, -radius, bodyHeight+radius, 0);
+		super(center);
 		this.bodyHeight = bodyHeight;
 		this.radius = radius;
+		applyBoundingBox(new CuboidBoundingBox(this, radius, -radius, radius, -radius, bodyHeight+radius, 0));
 	}
 	
 	public void draw(GL2 gl, GLUT glut) {

@@ -7,11 +7,14 @@ public abstract class BoundingBox {
 	public BoundingBox(EngineObject anchor) {
 		this.anchor = anchor;
 	}
-	
-	public abstract boolean inside(Point3D point);
-	
-	public abstract boolean intersect(BoundingBox bb);
-	
-	public abstract Point3D[] getPoints();
 
+	public abstract boolean inside(Point3D point);
+
+	public abstract boolean intersect(BoundingBox bb);
+
+	public abstract Point3D[] getPoints();
+	
+	public EngineObject getAnchor() {
+		return anchor;
+	}
 }

@@ -3,7 +3,6 @@ package engine;
 public class CuboidBoundingBox extends BoundingBox {
 	
 	protected float front, back, left, right, top, bottom;
-	Point3D[] points;
 
 	public CuboidBoundingBox(EngineObject anchor, float front, float back, float left, float right, float top, float bottom) {
 		super(anchor);
@@ -13,17 +12,6 @@ public class CuboidBoundingBox extends BoundingBox {
 		this.right = Math.abs(right);
 		this.top = Math.abs(top);
 		this.bottom = Math.abs(bottom);
-
-		float ax = anchor.getX(), ay = anchor.getY(), az = anchor.getZ();
-		Point3D[] points = {new Point3D(ax+front,ay+right,az+top),
-							new Point3D(ax+front,ay-left,az+top),
-							new Point3D(ax-back,ay-left,az+top),
-							new Point3D(ax-back,ay+right,az+top),
-							new Point3D(ax+front,ay+right,az-bottom),
-							new Point3D(ax+front,ay-left,az-bottom),
-							new Point3D(ax-back,ay-left,az-bottom),
-							new Point3D(ax-back,ay+right,az-bottom)};
-		this.points = points;
 	}
 	
 	public boolean inside(Point3D point) {
@@ -33,6 +21,7 @@ public class CuboidBoundingBox extends BoundingBox {
 	};
 	
 	public boolean intersect(BoundingBox bb) {
+		Point3D[] points = getPoints();
 		for (int i = 0; i < points.length; i++) {
 			if (bb.inside(points[i]))
 				return true;
@@ -41,6 +30,15 @@ public class CuboidBoundingBox extends BoundingBox {
 	};
 	
 	public Point3D[] getPoints() {
+		float ax = anchor.getX(), ay = anchor.getY(), az = anchor.getZ();
+		Point3D[] points = {new Point3D(ax+front,ay+right,az+top),
+							new Point3D(ax+front,ay-left,az+top),
+							new Point3D(ax-back,ay-left,az+top),
+							new Point3D(ax-back,ay+right,az+top),
+							new Point3D(ax+front,ay+right,az-bottom),
+							new Point3D(ax+front,ay-left,az-bottom),
+							new Point3D(ax-back,ay-left,az-bottom),
+							new Point3D(ax-back,ay+right,az-bottom)};
 		return points;
 	}
 	

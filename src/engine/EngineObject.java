@@ -4,18 +4,21 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
-public abstract class EngineObject{
+public abstract class EngineObject {
 
 	protected Point3D center;
 	protected float x, y, z, vx = 0, vy = 0, vz = 0, ya = 0, za = 60;
 	protected boolean visible = true, showBounds = false;
 	protected BoundingBox bounds;
 	
-	public EngineObject(Point3D center, BoundingBox bounds) {
+	public EngineObject(Point3D center) {
 		this.center = center;
-		this.bounds = bounds;
 		ObjectContainer.get().add(this);
 	}
+	
+	protected final void applyBoundingBox(BoundingBox bounds) {
+		this.bounds = bounds;
+	};
 	
 	protected abstract void draw(GL2 gl, GLUT glut);
 	
@@ -48,23 +51,23 @@ public abstract class EngineObject{
 	}
 	
 	public void setX(float x) {
-		center = new Point;
+		center = new Point3D(x,center.getY(),center.getZ());
 	}
 	
 	public float getY() {
-		return y;
+		return center.getY();
 	}
 	
 	public void setY(float y) {
-		this.y = y;
+		center = new Point3D(center.getX(),y,center.getZ());
 	}
 	
 	public float getZ() {
-		return z;
+		return center.getZ();
 	}
 	
 	public void setZ(float z) {
-		this.z = z;
+		center = new Point3D(center.getX(),center.getY(),z);
 	}
 	
 	public float getVX() {

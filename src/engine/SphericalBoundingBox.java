@@ -10,12 +10,12 @@ public class SphericalBoundingBox extends BoundingBox {
 	}
 	
 	public boolean inside(Point3D point) {
-		return (center.distanceTo(point) < radius);		
+		return (anchor.getCenter().distanceTo(point) < radius);		
 	};
 	
 	public boolean intersect(BoundingBox bb) {
 		if (bb instanceof SphericalBoundingBox) {
-			return (center.distanceTo(bb.getCenter()) < radius+((SphericalBoundingBox) bb).getRadius());
+			return (anchor.getCenter().distanceTo(bb.getAnchor().getCenter()) < radius+((SphericalBoundingBox) bb).getRadius());
 		} else {
 			Point3D[] points = bb.getPoints();
 			for (int i = 0; i < points.length; i++) {

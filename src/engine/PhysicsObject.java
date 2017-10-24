@@ -4,8 +4,8 @@ public abstract class PhysicsObject extends EngineObject {
 
 	public final static float g = -9.81f;
 	
-	public PhysicsObject(Point3D center, BoundingBox bounds) {
-		super(center, bounds);
+	public PhysicsObject(Point3D center) {
+		super(center);
 	}
 	
 	public void move(double tick) {
@@ -19,7 +19,7 @@ public abstract class PhysicsObject extends EngineObject {
 			this.vy = 0;
 			this.vz = 0;
 		}
-		center.move(this.vx*tick, this.vy*tick, this.vz*tick);
+		center.move((float) (this.vx*tick), (float) (this.vy*tick), (float) (this.vz*tick));
 	}
 	
 	public boolean isAirborne() {

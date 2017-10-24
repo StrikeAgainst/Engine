@@ -1,15 +1,8 @@
 package engine;
 
-public abstract class PlayablePhysicsObject extends PhysicsObject {
+public abstract class PlayablePhysicsObject extends PhysicsObject implements Playable{
 	
-	public PlayablePhysicsObject(float xPos, float yPos, float zPos, BoundingBox bounds) {
-		super(xPos, yPos, zPos, bounds);
+	public PlayablePhysicsObject(Point3D center) {
+		super(center);
 	}
-	
-	public abstract float getCamX();
-	
-	public abstract float getCamY();
-	
-	public abstract float getCamZ();
-
 }
