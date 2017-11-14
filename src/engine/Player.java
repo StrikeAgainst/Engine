@@ -73,15 +73,6 @@ public class Player implements KeyListener, MouseMotionListener {
 				if (xMove > 0) xMove = speed;
 				break;
 			}
-			case KeyEvent.VK_R: {
-				appliedObject.setX(0.25f);
-				appliedObject.setY(0.25f);
-				appliedObject.setZ(0);
-				appliedObject.setVX(0);
-				appliedObject.setVY(0);
-				appliedObject.setVZ(0);
-				break;
-			}
 		}
 	}
 

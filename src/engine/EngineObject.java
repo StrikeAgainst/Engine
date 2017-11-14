@@ -1,49 +1,44 @@
 package engine;
 
-import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
 public abstract class EngineObject {
 
+	public static boolean SHOW_BOUNDING = false;
 	protected Point3D center;
 	protected float vx = 0, vy = 0, vz = 0, ya = 0, za = 60;
-	protected boolean visible = true, showBounds = true;
-	protected BoundingBox bounds;
+	protected boolean visible = true;
+	protected Bounding bounding = null;
 	
 	public EngineObject(Point3D center) {
 		this.center = center;
 		ObjectContainer.get().add(this);
 	}
 	
-	protected final void applyBoundingBox(BoundingBox bounds) {
-		this.bounds = bounds;
+	protected final void applyBounding(Bounding bounding) {
+		this.bounding = bounding;
 	};
+	
+	public static void toggleShowBounding() {
+		EngineObject.SHOW_BOUNDING = !EngineObject.SHOW_BOUNDING;
+	}
 	
 	protected abstract void draw(GL2 gl, GLUT glut);
 	
 	public void drawObject(GL2 gl, GLUT glut) {
-		if (visible) {
-			draw(gl, glut);
-			if (showBounds) drawBounds(gl, glut);
-		}
+		if (visible)
+			this.draw(gl, glut);
+		if (SHOW_BOUNDING && bounding != null)
+			bounding.draw(gl, glut);
 	}
-	
-	public void drawBounds(GL2 gl, GLUT glut) {
-		if (showBounds) {
-			Point3D[] points = bounds.getPoints();
-			gl.glColor3f(1f,0.55f,0f);
-			gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_LINE);
-			gl.glBegin(GL2.GL_QUAD_STRIP);
-			for (int i = 0; i < points.length; i++) {
-				gl.glVertex3f(points[i].getX(), points[i].getY(), points[i].getZ());
-			}
-			gl.glEnd();
-		}
-	};
 	
 	public Point3D getCenter() {
 		return center;
+	}
+	
+	public void setCenter(Point3D center) {
+		this.center = center;
 	}
 	
 	public float getX() {
@@ -51,7 +46,7 @@ public abstract class EngineObject {
 	}
 	
 	public void setX(float x) {
-		center = new Point3D(x,center.getY(),center.getZ());
+		center.setX(x);
 	}
 	
 	public float getY() {
@@ -59,7 +54,7 @@ public abstract class EngineObject {
 	}
 	
 	public void setY(float y) {
-		center = new Point3D(center.getX(),y,center.getZ());
+		center.setY(y);
 	}
 	
 	public float getZ() {
@@ -67,7 +62,7 @@ public abstract class EngineObject {
 	}
 	
 	public void setZ(float z) {
-		center = new Point3D(center.getX(),center.getY(),z);
+		center.setZ(z);
 	}
 	
 	public float getVX() {
@@ -110,8 +105,8 @@ public abstract class EngineObject {
 		this.za = za;
 	}
 	
-	public BoundingBox getBounds(){
-		return bounds;
+	public Bounding getBounding(){
+		return bounding;
 	}
 	
 	public void setVisible() {

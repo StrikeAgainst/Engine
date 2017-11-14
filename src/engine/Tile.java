@@ -24,7 +24,7 @@ public class Tile extends EngineObject {
 				new Point3D(x-size/paddingScale, y+size/paddingScale, z+0.01f)});
 		this.size = size;
 		this.setColor(shade, shade, shade);
-		applyBoundingBox(new CuboidBoundingBox(this, size/2, size/-2, size/2, size/-2, 0.01f, -0.01f));
+		applyBounding(new BoundingBox(center, size/2, size/-2, size/2, size/-2, 0.01f, -0.01f));
 	}
 	
 	public Tile(Point3D center) {

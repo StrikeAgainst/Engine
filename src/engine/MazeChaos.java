@@ -86,7 +86,7 @@ public class MazeChaos extends JFrame {
 			glut = new GLUT();
 			cm = CamMode.FP;
 			initMaze(boardSize);
-            player = new Player(new Pawn(new Point3D(0.25f,0.25f,0),0.4f,0.1f));
+            player = new Player(new Pawn(Config.INIT_PLAYER_POS.clone(),0.4f,0.1f));
             this.addKeyListener(this);
             this.addKeyListener(player);
             this.addMouseMotionListener(player);
@@ -171,7 +171,7 @@ public class MazeChaos extends JFrame {
 			renderer.beginRendering(gLDrawable.getSurfaceWidth(), gLDrawable.getSurfaceHeight());
 		    renderer.setColor(0.0f, 1.0f, 0.0f, 0.8f);
 		    renderer.draw("FPS: "+gLDrawable.getAnimator().getLastFPS(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
-			renderer.draw("Player: xPos="+player.getAppliedObject().getCamX()+", yPos="+player.getAppliedObject().getCamY()+", zPos="+player.getAppliedObject().getCamZ()+", airborne="+player.getAppliedObject().isAirborne(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
+			renderer.draw("Player: xPos="+player.getAppliedObject().getX()+", yPos="+player.getAppliedObject().getY()+", zPos="+player.getAppliedObject().getZ()+", airborne="+player.getAppliedObject().isAirborne(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
 		    renderer.draw("Player: vx="+player.getAppliedObject().getVX()+", vy="+player.getAppliedObject().getVY()+", vz="+player.getAppliedObject().getVZ(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
 		    renderer.draw("Player: yAngle="+yAngle+", zAngle="+zAngle, 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
 		    renderer.endRendering();
@@ -208,6 +208,17 @@ public class MazeChaos extends JFrame {
 							break;
 						}
 					}
+					break;
+				}
+				case KeyEvent.VK_R: {
+					player.getAppliedObject().setCenter(Config.INIT_PLAYER_POS.clone());
+					player.getAppliedObject().setVX(0);
+					player.getAppliedObject().setVY(0);
+					player.getAppliedObject().setVZ(0);
+					break;
+				}
+				case KeyEvent.VK_B: {
+					EngineObject.toggleShowBounding();
 					break;
 				}
 				case KeyEvent.VK_P: {

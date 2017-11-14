@@ -12,7 +12,7 @@ public class Pawn extends PlayablePhysicsObject {
 		super(center);
 		this.bodyHeight = bodyHeight;
 		this.radius = radius;
-		applyBoundingBox(new CuboidBoundingBox(this, radius, -radius, radius, -radius, bodyHeight+radius, 0));
+		applyBounding(new BoundingBox(center, radius, -radius, radius, -radius, bodyHeight+radius, 0));
 	}
 	
 	public void draw(GL2 gl, GLUT glut) {

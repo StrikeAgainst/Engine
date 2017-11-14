@@ -43,7 +43,7 @@ public class Wall extends EngineObject {
 		}
 		this.width = width;
 		this.setColor(shade, shade, shade);
-		applyBoundingBox(new CuboidBoundingBox(this, (vertical?width/2:0.01f), (vertical?width/-2:-0.01f), (vertical?0.01f:width/2), (vertical?-0.01f:width/-2), height, 0));
+		applyBounding(new BoundingBox(center, (vertical?width/2:0.01f), (vertical?width/-2:-0.01f), (vertical?0.01f:width/2), (vertical?-0.01f:width/-2), height, 0));
 	}
 	
 	public Wall(Point3D center, boolean vertical) {

@@ -13,7 +13,7 @@ public abstract class PhysicsObject extends EngineObject {
 		this.vz += (float)(PhysicsObject.g*tick);
 		canMove = true;
 		for (EngineObject e : ObjectContainer.get()) {
-			if (bounds.intersect(e.getBounds())) {
+			if (bounding.intersects(e.getBounding())) {
 				System.out.println("Can't move!");
 				canMove = false;
 			}

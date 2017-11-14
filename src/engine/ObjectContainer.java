@@ -10,7 +10,7 @@ import com.jogamp.opengl.util.gl2.GLUT;
 
 public class ObjectContainer extends Observable implements Iterable<EngineObject> {
 	
-	private static ObjectContainer container;
+	private static ObjectContainer container = null;
 	private Vector<EngineObject> eos = new Vector<EngineObject>();
 	
 	private ObjectContainer() {}
