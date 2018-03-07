@@ -1,16 +1,26 @@
-package engine;
+package object;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
+import engine.EngineObject;
+import world.BoundingBox;
+import world.Point3D;
+import world.Polygon;
+
 public class Tile extends EngineObject {
 
+	private static final float SHADE = 0.8f;
 	private final float paddingScale = 2.1f;
-	private float size, shade = 0.8f;
+	private float size;
 	private Polygon main, padding;
 	
 	public Tile(Point3D center, float size) {
-		super(center);
+		this(center, size, SHADE, SHADE, SHADE);
+	}
+	
+	public Tile(Point3D center, float size, float r, float g, float b) {
+		super(center, new BoundingBox(center, size/2, size/-2, size/2, size/-2, 0f, -0.01f));
 		float x = center.getX(), y = center.getY(), z = center.getZ();
 		main = new Polygon(new Point3D[] {
 				new Point3D(x+size/2, y+size/2, z), 
@@ -23,8 +33,7 @@ public class Tile extends EngineObject {
 				new Point3D(x-size/paddingScale, y-size/paddingScale, z+0.01f), 
 				new Point3D(x-size/paddingScale, y+size/paddingScale, z+0.01f)});
 		this.size = size;
-		this.setColor(shade, shade, shade);
-		applyBounding(new BoundingBox(center, size/2, size/-2, size/2, size/-2, 0.01f, -0.01f));
+		this.setColor(r, g, b);
 	}
 	
 	public Tile(Point3D center) {

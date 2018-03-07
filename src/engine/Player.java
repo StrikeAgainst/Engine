@@ -12,14 +12,14 @@ public class Player implements KeyListener, MouseMotionListener {
 	private Robot robot;
 	
 	private final float sensitivity = 0.15f, speed0 = 1.0f, speedMult = 2; 
-	private float jumpHeight = 3.0f;
+	private float jumpHeight = 1.0f;
 	private double xCenter, yCenter, sinY, cosY;
 	private float xMove = 0, yMove = 0, zMove = 0, speed = speed0;
-	private boolean controlsOn = true, mouseOn = true;
-	private PlayablePhysicsObject appliedObject;
+	private boolean cameraZLocked = false, controlsOn = true, mouseOn = true, noClip = false;
+	private PlayablePhysicsObject playerObject;
 	
-	public Player(PlayablePhysicsObject apply) {
-		this.appliedObject = apply;
+	public Player(PlayablePhysicsObject playerObject) {
+		this.playerObject = playerObject;
 		try {
 			robot = new Robot();
 		} catch (AWTException e) {
@@ -28,74 +28,71 @@ public class Player implements KeyListener, MouseMotionListener {
 		}
 	}
 	
-	public PlayablePhysicsObject getAppliedObject() {
-		return appliedObject;
+	public PlayablePhysicsObject getPlayerObject() {
+		return playerObject;
 	}
 
-	public void move(double period) {
-		if (!appliedObject.isAirborne()) {
-			sinY = Math.sin(Math.toRadians(appliedObject.getYAngle()));
-			cosY = Math.cos(Math.toRadians(appliedObject.getYAngle()));
-			appliedObject.setVX((float)(((cosY*xMove-sinY*yMove))));
-			appliedObject.setVY((float)(((cosY*yMove+sinY*xMove))));
-			appliedObject.setVZ(zMove*jumpHeight);
-			if (xMove != 0 && yMove != 0) {
-				appliedObject.setVX((float)(appliedObject.getVX()/Math.sqrt(2)));
-				appliedObject.setVY((float)(appliedObject.getVY()/Math.sqrt(2)));
-			}
-		}
+	public void control(double tick) {
+		double speedFactor = 1/Math.max(1, Math.sqrt((xMove == 0?0:1)+(yMove == 0?0:1)));
+		double yAngle = Math.toRadians(playerObject.getYAngle());
+		sinY = Math.sin(yAngle);
+		cosY = Math.cos(yAngle);
+		playerObject.setVX((float)(((cosY*xMove-sinY*yMove)*speedFactor)));
+		playerObject.setVY((float)(((cosY*yMove+sinY*xMove)*speedFactor)));
+		if (!playerObject.isGravitational() || !playerObject.isAirborne())
+			playerObject.setVZ(zMove*jumpHeight);
 	}
 
 	public void keyPressed(KeyEvent e) {
-		switch (e.getKeyCode()) {
-			case KeyEvent.VK_W: {
-				xMove = 1;
-				break;
+		if (controlsOn)
+			switch (e.getKeyCode()) {
+				case KeyEvent.VK_W: {
+					xMove = 1;
+					break;
+				}
+				case KeyEvent.VK_S: {
+					xMove = -1;
+					break;
+				}
+				case KeyEvent.VK_A: {
+					yMove = 1;
+					break;
+				}
+				case KeyEvent.VK_D: {
+					yMove = -1;
+					break;
+				}
+				case KeyEvent.VK_SPACE: {
+					zMove = 1;
+					break;
+				}
+				case KeyEvent.VK_CONTROL: {
+					zMove = -1;
+					break;
+				}
+				case KeyEvent.VK_SHIFT: {
+					speed = speedMult*speed0;
+					if (xMove > 0) xMove = speed;
+					break;
+				}
 			}
-			case KeyEvent.VK_S: {
-				xMove = -1;
-				break;
-			}
-			case KeyEvent.VK_A: {
-				yMove = 1;
-				break;
-			}
-			case KeyEvent.VK_D: {
-				yMove = -1;
-				break;
-			}
-			case KeyEvent.VK_SPACE: {
-				zMove = 1;
-				break;
-			}
-			case KeyEvent.VK_SHIFT: {
-				speed = speedMult*speed0;
-				if (xMove > 0) xMove = speed;
-				break;
-			}
-		}
 	}
 
 	public void keyReleased(KeyEvent e) {
-		if (controlsOn) {
+		if (controlsOn)
 			switch (e.getKeyCode()) {
-				case KeyEvent.VK_W: {
-					xMove = 0;
-					break;
-				}
+				case KeyEvent.VK_W: 
 				case KeyEvent.VK_S: {
 					xMove = 0;
 					break;
 				}
-				case KeyEvent.VK_A: {
-					yMove = 0;
-					break;
-				}
+				case KeyEvent.VK_A: 
 				case KeyEvent.VK_D: {
 					yMove = 0;
 					break;
 				}
-				case KeyEvent.VK_SPACE: {
+				case KeyEvent.VK_SPACE: 
+				case KeyEvent.VK_CONTROL: {
 					zMove = 0;
 					break;
 				}
@@ -104,12 +101,15 @@ public class Player implements KeyListener, MouseMotionListener {
 					if (xMove > 0) xMove = speed;
 					break;
 				}
+				case KeyEvent.VK_C: {
+					noClip();
+					break;
+				}
 				case KeyEvent.VK_M: {
 					mouseOn = !mouseOn;
 					break;
 				}
 			}
-		}
 	}
 
 	public void keyTyped(KeyEvent e) {}
@@ -119,14 +119,14 @@ public class Player implements KeyListener, MouseMotionListener {
 	public void mouseMoved(MouseEvent e) {
 		if (controlsOn && mouseOn) {
 			double xDiff = xCenter-e.getXOnScreen(), yDiff = e.getYOnScreen()-yCenter;
-			double yAngle = appliedObject.getYAngle()+xDiff*sensitivity;
-			double zAngle = appliedObject.getZAngle()-yDiff*sensitivity;
+			double yAngle = playerObject.getYAngle()+xDiff*sensitivity;
+			double zAngle = playerObject.getZAngle()-yDiff*sensitivity;
 			if (yAngle > 360) yAngle -= 360;
 			else if (yAngle < 0) yAngle += 360;
 			if (zAngle > 180) zAngle = 180;
 			else if (zAngle < 0) zAngle = 0;
-			appliedObject.setYAngle((float) yAngle);
-			appliedObject.setZAngle((float) zAngle);
+			playerObject.setYAngle((float) yAngle);
+			playerObject.setZAngle((float) zAngle);
 			mouseOn = false;
 			robot.mouseMove((int) xCenter, (int) yCenter);
 			mouseOn = true;
@@ -138,7 +138,20 @@ public class Player implements KeyListener, MouseMotionListener {
 		this.yCenter = yCenter;
 	}
 	
+	public void noClip() {
+		if (noClip) {
+		} else {
+			
+		}
+		playerObject.toggleGravitational();
+		noClip = !noClip;
+	}
+	
 	public boolean isMouseOn() {
 		return mouseOn;
+	}
+	
+	public boolean isCameraZLocked() {
+		return cameraZLocked;
 	}
 }

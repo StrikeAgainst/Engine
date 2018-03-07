@@ -1,16 +1,26 @@
-package engine;
+package object;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
+import engine.EngineObject;
+import world.BoundingBox;
+import world.Point3D;
+import world.Polygon;
+
 public class Wall extends EngineObject {
-	
+
+	private static final float SHADE = 0.5f;
 	private final float paddingScale = 2.4f;
-	private float width, height, shade = 0.5f;
+	private float width, height;
 	private Polygon main, padding1, padding2;
 	
 	public Wall(Point3D center, float width, float height, boolean vertical) {
-		super(center);
+		this(center, width, height, vertical, SHADE, SHADE, SHADE);
+	}
+	
+	public Wall(Point3D center, float width, float height, boolean vertical, float r, float g, float b) {
+		super(center, new BoundingBox(center, (vertical?width/2:0.01f), (vertical?width/-2:-0.01f), (vertical?0.01f:width/2), (vertical?-0.01f:width/-2), height, 0));
 		float x = center.getX(), y = center.getY(), z = center.getZ();
 		main = new Polygon(new Point3D[] {
 				new Point3D(x+(vertical?width/2:0), y+(vertical?0:width/2), z), 
@@ -42,8 +52,7 @@ public class Wall extends EngineObject {
 					new Point3D(x-0.01f, y+pwidth, z+height-margin)});
 		}
 		this.width = width;
-		this.setColor(shade, shade, shade);
-		applyBounding(new BoundingBox(center, (vertical?width/2:0.01f), (vertical?width/-2:-0.01f), (vertical?0.01f:width/2), (vertical?-0.01f:width/-2), height, 0));
+		this.setColor(r, g, b);
 	}
 	
 	public Wall(Point3D center, boolean vertical) {

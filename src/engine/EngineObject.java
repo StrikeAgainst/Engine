@@ -1,24 +1,34 @@
 package engine;
 
+import java.util.ArrayList;
+
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
+import world.ObjectBounding;
+import world.Point3D;
+import world.Vector3D;
+
 public abstract class EngineObject {
 
+	public static int ID_INCREMENT = 0;
 	public static boolean SHOW_BOUNDING = false;
-	protected Point3D center;
-	protected float vx = 0, vy = 0, vz = 0, ya = 0, za = 60;
-	protected boolean visible = true;
-	protected Bounding bounding = null;
+	public static float restitution = 0.2f, friction = 0.4f;
 	
-	public EngineObject(Point3D center) {
-		this.center = center;
+	protected int id;
+	protected boolean visible = true;
+	protected boolean moving = false;
+	protected boolean gravitational = false;
+	protected Point3D anchor;
+	protected ObjectBounding bounding = null;
+	protected ArrayList<Intersection> intersections = new ArrayList<Intersection>();
+	
+	public EngineObject(Point3D anchor, ObjectBounding bounding) {
+		this.id = EngineObject.ID_INCREMENT++;
+		this.anchor = anchor;
+		this.bounding = bounding;
 		ObjectContainer.get().add(this);
 	}
-	
-	protected final void applyBounding(Bounding bounding) {
-		this.bounding = bounding;
-	};
 	
 	public static void toggleShowBounding() {
 		EngineObject.SHOW_BOUNDING = !EngineObject.SHOW_BOUNDING;
@@ -30,84 +40,64 @@ public abstract class EngineObject {
 		if (visible)
 			this.draw(gl, glut);
 		if (SHOW_BOUNDING && bounding != null)
-			bounding.draw(gl, glut);
+			bounding.draw(gl, glut, !intersections.isEmpty());
 	}
 	
-	public Point3D getCenter() {
-		return center;
+	public Point3D getAnchor() {
+		return anchor;
 	}
 	
-	public void setCenter(Point3D center) {
-		this.center = center;
+	public void setAnchor(Point3D anchor) {
+		this.anchor.moveTo(anchor);
 	}
 	
 	public float getX() {
-		return center.getX();
+		return anchor.getX();
 	}
 	
 	public void setX(float x) {
-		center.setX(x);
+		anchor.setX(x);
 	}
 	
 	public float getY() {
-		return center.getY();
+		return anchor.getY();
 	}
 	
 	public void setY(float y) {
-		center.setY(y);
+		anchor.setY(y);
 	}
 	
 	public float getZ() {
-		return center.getZ();
+		return anchor.getZ();
 	}
 	
 	public void setZ(float z) {
-		center.setZ(z);
+		anchor.setZ(z);
 	}
 	
-	public float getVX() {
-		return vx;
-	}
-	
-	public void setVX(float vx) {
-		this.vx = vx;
-	}
-	
-	public float getVY() {
-		return vy;
-	}
-	
-	public void setVY(float vy) {
-		this.vy = vy;
-	}
-	
-	public float getVZ() {
-		return vz;
-	}
-	
-	public void setVZ(float vz) {
-		this.vz = vz;
-	}
-	
-	public float getYAngle() {
-		return ya;
-	}
-	
-	public void setYAngle(float ya) {
-		this.ya = ya;
-	}
-	
-	public float getZAngle() {
-		return za; 
-	}
-	
-	public void setZAngle(float za) {
-		this.za = za;
-	}
-	
-	public Bounding getBounding(){
+	public ObjectBounding getBounding(){
 		return bounding;
 	}
+	
+	public Vector3D intersects(EngineObject object){
+		return bounding.intersects(object.getBounding());
+	}
+	
+	public void resetIntersections() {
+		intersections = new ArrayList<Intersection>();
+	}
+	
+	public void addIntersection(Intersection intersection) {
+		intersections.add(intersection);
+	}
+	
+	public ArrayList<Intersection> getIntersections() {
+		return intersections;
+	}
+	
+	public boolean handleIntersections() {
+		return true;
+	};
 	
 	public void setVisible() {
 		visible = true;
@@ -117,7 +107,19 @@ public abstract class EngineObject {
 		visible = false;
 	}
 	
+	public boolean isMoving() {
+		return moving;
+	}
+	
+	public boolean isGravitational() {
+		return gravitational;
+	}
+	
+	public int getID() {
+		return id;
+	}
+	
 	public String toString() {
-		return "[x="+center.getX()+", y="+center.getY()+", z="+center.getZ()+", ya="+ya+", za="+za+"]";
+		return id+":[x="+anchor.getX()+", y="+anchor.getY()+", z="+anchor.getZ()+"]";
 	}
 }

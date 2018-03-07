@@ -1,7 +1,4 @@
-package engine;
-
-import com.jogamp.opengl.GL2;
-import com.jogamp.opengl.util.gl2.GLUT;
+package world;
 
 public abstract class Bounding {
 
@@ -14,12 +11,6 @@ public abstract class Bounding {
 	public abstract boolean encloses(Point3D point);
 
 	public abstract boolean encloses(Bounding bounding);
-
-	public abstract boolean intersects(Bounding bounding);
-
-	public abstract Point3D[] getPoints();
-	
-	public abstract void draw(GL2 gl, GLUT glut);
 	
 	public Point3D getAnchor() {
 		return anchor;

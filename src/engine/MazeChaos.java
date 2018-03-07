@@ -10,7 +10,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.util.Random;
-import java.util.ArrayList;
 
 import javax.swing.JFrame;
 
@@ -24,6 +23,12 @@ import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.gl2.GLUT;
+
+import object.Pawn;
+import object.Tile;
+import object.Wall;
+import world.Octree;
+import world.Point3D;
 
 public class MazeChaos extends JFrame {
 
@@ -76,8 +81,8 @@ public class MazeChaos extends JFrame {
 		private boolean pause = false;
 		private long newTick, lastTick = System.currentTimeMillis();
 		private Random random = new Random();
-		private ArrayList<Tile> tiles = new ArrayList<Tile>();
 		private ObjectContainer container = ObjectContainer.get();
+		private Octree octree = Octree.get();
 		private Player player;
 
 		public WinRenderer(GLCapabilities cap) {
@@ -109,44 +114,52 @@ public class MazeChaos extends JFrame {
 			else this.setCursor(Cursor.getDefaultCursor());
             player.setCenter(this.getLocationOnScreen().getX()+this.getSize().getWidth()/2, this.getLocationOnScreen().getY()+this.getSize().getHeight()/2);
 
-			yAngle = player.getAppliedObject().getYAngle();
-			zAngle = player.getAppliedObject().getZAngle();
+			yAngle = player.getPlayerObject().getYAngle();
+			zAngle = player.getPlayerObject().getZAngle();
 			sinY = Math.sin(Math.toRadians(yAngle));
 			sinZ = Math.sin(Math.toRadians(zAngle));
 			cosY = Math.cos(Math.toRadians(yAngle));
 			cosZ = Math.cos(Math.toRadians(zAngle));
 			
-			if (cm == CamMode.FP) {
-				player.getAppliedObject().setInvisible();
-				camX = player.getAppliedObject().getCamX();
-				camY = player.getAppliedObject().getCamY();
-				camZ = player.getAppliedObject().getCamZ();
-				lookX = camX+sinZ*cosY;
-				lookY = camY+sinZ*sinY;
-				lookZ = camZ-cosZ;
-				uSinZ = Math.sin(Math.toRadians(zAngle+90));
-				uCosZ = Math.cos(Math.toRadians(zAngle+90));
-			} else if (cm == CamMode.TP) {
-				player.getAppliedObject().setVisible();
-				lookX = player.getAppliedObject().getCamX();
-				lookY = player.getAppliedObject().getCamY();
-				lookZ = player.getAppliedObject().getCamZ();
-				camX = lookX-sinZ*cosY*distance;
-				camY = lookY-sinZ*sinY*distance;
-				camZ = Math.max(0.1f, lookZ+cosZ*distance);
-				uSinZ = Math.sin(Math.toRadians(zAngle+90));
-				uCosZ = Math.cos(Math.toRadians(zAngle+90));
-			} else if (cm == CamMode.BIRD) {
-				player.getAppliedObject().setVisible();
-				zRad = Math.toRadians(15);
-				lookX = boardSize*panelSize/2;
-				lookY = boardSize*panelSize/2;
-				lookZ = 0;
-				camX = lookX+Math.sin(zRad)*boardSize/2;
-				camY = lookY;
-				camZ = lookZ+Math.cos(zRad)*boardSize/2;
-				uSinZ = 0;
-				uCosZ = -1;
+			switch(cm) {
+				case FP: {
+					player.getPlayerObject().setInvisible();
+					camX = player.getPlayerObject().getCamX();
+					camY = player.getPlayerObject().getCamY();
+					camZ = player.getPlayerObject().getCamZ();
+					lookX = camX+sinZ*cosY;
+					lookY = camY+sinZ*sinY;
+					lookZ = camZ-cosZ;
+					uSinZ = Math.sin(Math.toRadians(zAngle+90));
+					uCosZ = Math.cos(Math.toRadians(zAngle+90));
+					break;
+				}
+				case TP: {
+					player.getPlayerObject().setVisible();
+					lookX = player.getPlayerObject().getCamX();
+					lookY = player.getPlayerObject().getCamY();
+					lookZ = player.getPlayerObject().getCamZ();
+					camX = lookX-sinZ*cosY*distance;
+					camY = lookY-sinZ*sinY*distance;
+					camZ = (player.isCameraZLocked()?Math.max(0.1f, lookZ+cosZ*distance):lookZ+cosZ*distance);
+					uSinZ = Math.sin(Math.toRadians(zAngle+90));
+					uCosZ = Math.cos(Math.toRadians(zAngle+90));
+					break;
+				}
+				case BIRD: {
+					player.getPlayerObject().setVisible();
+					zRad = Math.toRadians(15);
+					lookX = boardSize*panelSize/2;
+					lookY = boardSize*panelSize/2;
+					lookZ = 0;
+					camX = lookX+Math.sin(zRad)*boardSize/2;
+					camY = lookY;
+					camZ = lookZ+Math.cos(zRad)*boardSize/2;
+					uSinZ = 0;
+					uCosZ = -1;
+					break;
+				}
+				default: {}
 			}
 			glu.gluLookAt(camX, camY, camZ, lookX, lookY, lookZ, uSinZ*cosY, uSinZ*sinY, -uCosZ);
 
@@ -157,7 +170,11 @@ public class MazeChaos extends JFrame {
 				e.drawObject(gl, glut);
 				if (e instanceof PhysicsObject) ((PhysicsObject)e).move(tick);
 			}
-			if (!pause) player.move(tick);
+			if (!pause) player.control(tick);
+			octree.update();
+			octree.detectCollisions().toString();
+			for (EngineObject e : container)
+				e.handleIntersections();
 			
 			float center = boardSize*panelSize/2;
 			gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT, new float[] {0.2f, 0.2f, 0.2f, 0.2f}, 0);
@@ -171,9 +188,8 @@ public class MazeChaos extends JFrame {
 			renderer.beginRendering(gLDrawable.getSurfaceWidth(), gLDrawable.getSurfaceHeight());
 		    renderer.setColor(0.0f, 1.0f, 0.0f, 0.8f);
 		    renderer.draw("FPS: "+gLDrawable.getAnimator().getLastFPS(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
-			renderer.draw("Player: xPos="+player.getAppliedObject().getX()+", yPos="+player.getAppliedObject().getY()+", zPos="+player.getAppliedObject().getZ()+", airborne="+player.getAppliedObject().isAirborne(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
-		    renderer.draw("Player: vx="+player.getAppliedObject().getVX()+", vy="+player.getAppliedObject().getVY()+", vz="+player.getAppliedObject().getVZ(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
-		    renderer.draw("Player: yAngle="+yAngle+", zAngle="+zAngle, 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
+			renderer.draw("Player: "+player.getPlayerObject().toString(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
+			renderer.draw("Player: moving="+player.getPlayerObject().isMoving()+", airborne="+player.getPlayerObject().isAirborne(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
 		    renderer.endRendering();
 
 			gl.glFlush();
@@ -211,10 +227,8 @@ public class MazeChaos extends JFrame {
 					break;
 				}
 				case KeyEvent.VK_R: {
-					player.getAppliedObject().setCenter(Config.INIT_PLAYER_POS.clone());
-					player.getAppliedObject().setVX(0);
-					player.getAppliedObject().setVY(0);
-					player.getAppliedObject().setVZ(0);
+					player.getPlayerObject().setAnchor(Config.INIT_PLAYER_POS.clone());
+					player.getPlayerObject().stop();
 					break;
 				}
 				case KeyEvent.VK_B: {
@@ -241,22 +255,22 @@ public class MazeChaos extends JFrame {
 				x = i*panelSize;
 				for (int j = 0; j < size; j++) {
 					y = j*panelSize;
-					if (i == 0 && j == 0) {
-						Tile t = new Tile(new Point3D(x+half, y+half, 0.0f), panelSize);
-						t.setColor(0, 0, 0.5f);
-						tiles.add(t);
-					} else if (i == size-1 && j == size-1){
-						Tile t = new Tile(new Point3D(x+half, y+half, 0.0f), panelSize);
-						t.setColor(0, 0.5f, 0);
-						tiles.add(t);
-					} else if (random.nextInt(size) != 0) {
-						Tile t = new Tile(new Point3D(x+half, y+half, 0.0f), panelSize);
-						tiles.add(t);
-					}
-					if (m.getNorth()[j+1][i+1]) new Wall(new Point3D(x, y+half, 0.0f), panelSize, wallHeight, false);
-					if (m.getSouth()[j+1][i+1]) new Wall(new Point3D(x+panelSize, y+half, 0.0f), panelSize, wallHeight, false);
-					if (m.getWest()[j+1][i+1]) new Wall(new Point3D(x+half, y, 0.0f), panelSize, wallHeight, true);
-					if (m.getEast()[j+1][i+1]) new Wall(new Point3D(x+half, y+panelSize, 0.0f), panelSize, wallHeight, true);
+					
+					if (i == 0 && j == 0)
+						new Tile(new Point3D(x+half, y+half, 0.0f), panelSize, 0, 0, 0.5f);
+					else if (i == size-1 && j == size-1)
+						new Tile(new Point3D(x+half, y+half, 0.0f), panelSize, 0, 0.5f, 0);
+					else if (random.nextInt(size) != 0)
+						new Tile(new Point3D(x+half, y+half, 0.0f), panelSize);
+					
+					if (m.getNorth()[j+1][i+1] && (i == 0 || !m.getSouth()[j+1][i]))
+						new Wall(new Point3D(x, y+half, 0.0f), panelSize, wallHeight, false);
+					if (m.getSouth()[j+1][i+1])
+						new Wall(new Point3D(x+panelSize, y+half, 0.0f), panelSize, wallHeight, false);
+					if (m.getWest()[j+1][i+1] && (j == 0 || !m.getEast()[j][i+1]))
+						new Wall(new Point3D(x+half, y, 0.0f), panelSize, wallHeight, true);
+					if (m.getEast()[j+1][i+1])
+						new Wall(new Point3D(x+half, y+panelSize, 0.0f), panelSize, wallHeight, true);
 				}
 			}
 		}

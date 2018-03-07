@@ -1,4 +1,4 @@
-package engine;
+package world;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
@@ -10,7 +10,7 @@ public class Polygon {
 	private Point3D[] points;
 	private float r = 1.0f, g = 1.0f, b = 1.0f;
 	
-	protected Polygon(Point3D[] points) {
+	public Polygon(Point3D[] points) {
 		this.points = points;
 	}
 	

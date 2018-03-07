@@ -1,22 +1,25 @@
-package engine;
+package object;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
+
+import engine.PlayablePhysicsObject;
+import world.BoundingBox;
+import world.Point3D;
 
 public class Pawn extends PlayablePhysicsObject {
 
 	private float bodyHeight, radius;
 			
 	public Pawn(Point3D center, float bodyHeight, float radius) {
-		super(center);
+		super(center, new BoundingBox(center, radius, -radius, radius, -radius, bodyHeight+radius, 0));
 		this.bodyHeight = bodyHeight;
 		this.radius = radius;
-		applyBounding(new BoundingBox(center, radius, -radius, radius, -radius, bodyHeight+radius, 0));
 	}
 	
 	public void draw(GL2 gl, GLUT glut) {
-		gl.glTranslatef(center.getX(), center.getY(), center.getZ());
+		gl.glTranslatef(anchor.getX(), anchor.getY(), anchor.getZ());
 		gl.glRotatef(ya, 0.0f, 0.0f, 1.0f);
 		gl.glColor3f(0f,0.6f,0f);
 		gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_FILL);
@@ -24,19 +27,19 @@ public class Pawn extends PlayablePhysicsObject {
 		gl.glTranslatef(0.0f, 0.0f, bodyHeight);
 		glut.glutSolidSphere(radius, 12, 4);
 		gl.glRotatef(-ya, 0.0f, 0.0f, 1.0f);
-		gl.glTranslatef(center.getX()*(-1), center.getY()*(-1), (center.getZ()+bodyHeight)*(-1));
+		gl.glTranslatef(anchor.getX()*(-1), anchor.getY()*(-1), (anchor.getZ()+bodyHeight)*(-1));
 	}
 	
 	public float getCamX() {
-		return center.getX();
+		return anchor.getX();
 	}
 	
 	public float getCamY() {
-		return center.getY();
+		return anchor.getY();
 	}
 	
 	public float getCamZ() {
-		return center.getZ()+bodyHeight;
+		return anchor.getZ()+bodyHeight;
 	}
 	
 	public String toString() {

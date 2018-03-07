@@ -1,17 +1,20 @@
 package engine;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Vector;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
+import world.Octree;
+
 public class ObjectContainer extends Observable implements Iterable<EngineObject> {
 	
 	private static ObjectContainer container = null;
-	private Vector<EngineObject> eos = new Vector<EngineObject>();
+	private Octree octree = Octree.get();
+	private ArrayList<EngineObject> objects = new ArrayList<EngineObject>();
 	
 	private ObjectContainer() {}
 	
@@ -21,38 +24,43 @@ public class ObjectContainer extends Observable implements Iterable<EngineObject
 	}
 	
 	public void drawAll(GL2 gl, GLUT glut) {
-		for (EngineObject eo : eos) {
-			eo.drawObject(gl, glut);
+		for (EngineObject object : objects) {
+			object.drawObject(gl, glut);
 		}
 	}
 	
 	public boolean add(EngineObject e) {
-		for (EngineObject eo : eos) {
-			if (e == eo) return false;
+		for (EngineObject object : objects) {
+			if (e == object) return false;
 		}
-		eos.add(e);
+		objects.add(e.getID(), e);
+		if (e.getBounding() != null)
+			octree.insertNode(e);
 		return true;
 	}
 	
 	public boolean remove(EngineObject e) {
-		if (eos.contains(e) && eos.remove(e)) return true;
-		return false;
+		return (objects.contains(e) && objects.remove(e) && octree.removeNode(e) instanceof Octree);
 	}
 	
-	public void removeAll() {
-		eos.removeAllElements();
+	public void clear() {
+		objects.clear();
+	}
+	
+	public EngineObject get(int id) {
+		return objects.get(id);
 	}
 	
 	public boolean contains(EngineObject e){
-		return eos.contains(e);
+		return objects.contains(e);
 	}
 	
 	public int size() {
-		return eos.size();
+		return objects.size();
 	}
 
 	public Iterator<EngineObject> iterator() {
-		return eos.iterator();
+		return objects.iterator();
 	}
 	
 	public void addObserver(Observer o) {
@@ -62,8 +70,8 @@ public class ObjectContainer extends Observable implements Iterable<EngineObject
 	public String getContentString() {
 		String s = "";
 		int c = 0;
-		for (EngineObject eo : eos) {
-			s = s+"Object "+c+": "+eo.toString()+", ";
+		for (EngineObject object : objects) {
+			s += "Object "+c+": "+object.toString()+", ";
 			c++;
 		}
 		return s;
