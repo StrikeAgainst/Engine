@@ -4,11 +4,11 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
-import engine.PlayablePhysicsObject;
+import engine.PlayableObject;
 import world.BoundingBox;
 import world.Point3D;
 
-public class Pawn extends PlayablePhysicsObject {
+public class Pawn extends PlayableObject {
 
 	private float bodyHeight, radius;
 			
@@ -40,9 +40,5 @@ public class Pawn extends PlayablePhysicsObject {
 	
 	public float getCamZ() {
 		return anchor.getZ()+bodyHeight;
-	}
-	
-	public String toString() {
-		return "Pawn:"+super.toString();
 	}
 }

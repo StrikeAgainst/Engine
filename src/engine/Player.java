@@ -16,10 +16,9 @@ public class Player implements KeyListener, MouseMotionListener {
 	private double xCenter, yCenter, sinY, cosY;
 	private float xMove = 0, yMove = 0, zMove = 0, speed = speed0;
 	private boolean cameraZLocked = false, controlsOn = true, mouseOn = true, noClip = false;
-	private PlayablePhysicsObject playerObject;
+	private PlayableObject playerObject;
 	
-	public Player(PlayablePhysicsObject playerObject) {
-		this.playerObject = playerObject;
+	public Player() {
 		try {
 			robot = new Robot();
 		} catch (AWTException e) {
@@ -28,7 +27,18 @@ public class Player implements KeyListener, MouseMotionListener {
 		}
 	}
 	
-	public PlayablePhysicsObject getPlayerObject() {
+	public Player(PlayableObject playerObject) {
+		this();
+		setPlayerObject(playerObject);
+	}
+	
+	public void setPlayerObject(PlayableObject playerObject) {
+		this.playerObject = playerObject;
+		if (playerObject.getPlayer() != this)
+			playerObject.setPlayer(this);
+	}
+	
+	public PlayableObject getPlayerObject() {
 		return playerObject;
 	}
 
@@ -37,10 +47,10 @@ public class Player implements KeyListener, MouseMotionListener {
 		double yAngle = Math.toRadians(playerObject.getYAngle());
 		sinY = Math.sin(yAngle);
 		cosY = Math.cos(yAngle);
-		playerObject.setVX((float)(((cosY*xMove-sinY*yMove)*speedFactor)));
-		playerObject.setVY((float)(((cosY*yMove+sinY*xMove)*speedFactor)));
-		if (!playerObject.isGravitational() || !playerObject.isAirborne())
-			playerObject.setVZ(zMove*jumpHeight);
+		playerObject.getMomentum().setVX((float)(((cosY*xMove-sinY*yMove)*speedFactor)));
+		playerObject.getMomentum().setVY((float)(((cosY*yMove+sinY*xMove)*speedFactor)));
+		if (!playerObject.isGravitational() || playerObject.getMomentum().getVZ() == 0)
+			playerObject.getMomentum().setVZ(zMove*jumpHeight);
 	}
 
 	public void keyPressed(KeyEvent e) {
@@ -145,6 +155,11 @@ public class Player implements KeyListener, MouseMotionListener {
 		}
 		playerObject.toggleGravitational();
 		noClip = !noClip;
+	}
+	
+	public void reset() {
+		playerObject.setAnchor(Config.INIT_PLAYER_POS.clone());
+		playerObject.stop();
 	}
 	
 	public boolean isMouseOn() {

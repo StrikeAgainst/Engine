@@ -14,7 +14,7 @@ public class BoundingSphere extends ObjectBounding {
 	}
 
 	public boolean encloses(Point3D point) {
-		return (anchor.distanceTo(point) < radius);
+		return (anchor.getEuclideanDistance(point) < radius);
 	}
 
 	public boolean encloses(Bounding bounding) {
@@ -27,7 +27,7 @@ public class BoundingSphere extends ObjectBounding {
 				return true;
 			}
 			case "BoundingSphere": {
-				return (anchor.distanceTo(bounding.getAnchor()) + ((BoundingSphere) bounding).getRadius() < radius);
+				return (anchor.getEuclideanDistance(bounding.getAnchor()) + ((BoundingSphere) bounding).getRadius() < radius);
 			}
 			default: {
 				return false;
@@ -39,10 +39,10 @@ public class BoundingSphere extends ObjectBounding {
 		switch (bounding.getClass().getSimpleName()) {
 			case "BoundingBox": {
 				Point3D closest = new Point3D(Math.max(((BoundingBox) bounding).getBackBound(false), Math.min(anchor.getX(), ((BoundingBox) bounding).getFrontBound(false))), Math.max(((BoundingBox) bounding).getRightBound(false), Math.min(anchor.getY(), ((BoundingBox) bounding).getLeftBound(false))), Math.max(((BoundingBox) bounding).getBottomBound(false), Math.min(anchor.getZ(), ((BoundingBox) bounding).getTopBound(false))));
-				return ((closest.distanceTo(anchor) < radius)?closest.difference(anchor):null);
+				return ((closest.getEuclideanDistance(anchor) < radius)?closest.getVector(anchor):null);
 			}
 			case "BoundingSphere": {
-				return ((anchor.distanceTo(bounding.getAnchor()) < radius + ((BoundingSphere) bounding).getRadius())?anchor.difference(bounding.getAnchor()):null);
+				return ((anchor.getEuclideanDistance(bounding.getAnchor()) < radius + ((BoundingSphere) bounding).getRadius())?anchor.getVector(bounding.getAnchor()):null);
 			}
 			default: {
 				return null;
@@ -57,6 +57,48 @@ public class BoundingSphere extends ObjectBounding {
 	public float getRadius() {
 		return radius;
 	}
+	
+	public float getFrontBound(boolean relative) {
+		if (relative)
+			return radius;
+		else
+			return anchor.getX()+radius;
+	}
+	
+	public float getBackBound(boolean relative) {
+		if (relative)
+			return radius;
+		else
+			return anchor.getX()-radius;
+	}
+	
+	public float getLeftBound(boolean relative) {
+		if (relative)
+			return radius;
+		else
+			return anchor.getY()+radius;
+	}
+	
+	public float getRightBound(boolean relative) {
+		if (relative)
+			return radius;
+		else
+			return anchor.getY()-radius;
+	}
+	
+	public float getTopBound(boolean relative) {
+		if (relative)
+			return radius;
+		else
+			return anchor.getZ()+radius;
+	}
+	
+	public float getBottomBound(boolean relative) {
+		if (relative)
+			return radius;
+		else
+			return anchor.getZ()-radius;
+	}
 
 	public void draw(GL2 gl, GLUT glut, boolean highlight) {
 		gl.glTranslatef(anchor.getX(), anchor.getY(), anchor.getZ());
@@ -67,6 +109,14 @@ public class BoundingSphere extends ObjectBounding {
 		gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_LINE);
 		glut.glutWireSphere(radius, 8, 8);
 		gl.glTranslatef(anchor.getX() * (-1), anchor.getY() * (-1), anchor.getZ() * (-1));
+	}
+	
+	public ObjectBounding clone() {
+		return new BoundingSphere(anchor.clone(), radius);
+	}
+	
+	public ObjectBounding clone(Point3D anchor) {
+		return new BoundingSphere(anchor, radius);
 	}
 
 	public String toString() {

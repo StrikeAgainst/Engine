@@ -8,7 +8,6 @@ public class BoundingBox extends ObjectBounding {
 	
 	protected float front, back, left, right, top, bottom;
 	// front > back, left > right, top > bottom
-
 	
 	public BoundingBox(Point3D anchor, float front, float back, float left, float right, float top, float bottom) {
 		super(anchor);
@@ -57,7 +56,7 @@ public class BoundingBox extends ObjectBounding {
 			case "BoundingSphere": {
 				Point3D anchor = bounding.getAnchor();
 				Point3D closest = new Point3D(Math.max(getBackBound(false), Math.min(anchor.getX(), getFrontBound(false))), Math.max(getRightBound(false), Math.min(anchor.getY(), getLeftBound(false))), Math.max(getBottomBound(false), Math.min(anchor.getZ(), getTopBound(false))));
-				return ((closest.distanceTo(anchor) < ((BoundingSphere) bounding).getRadius())?closest.difference(anchor):null);
+				return ((closest.getEuclideanDistance(anchor) < ((BoundingSphere) bounding).getRadius())?closest.getVector(anchor):null);
 			}
 			default: {
 				return null;
@@ -133,6 +132,18 @@ public class BoundingBox extends ObjectBounding {
 			return bottom;
 		else
 			return anchor.getZ()-bottom;
+	}
+	
+	public BoundingBox boxify() {
+		return (BoundingBox) clone();
+	};
+	
+	public ObjectBounding clone() {
+		return new BoundingBox(anchor.clone(), front, back, left, right, top, bottom);
+	}
+	
+	public ObjectBounding clone(Point3D anchor) {
+		return new BoundingBox(anchor, front, back, left, right, top, bottom);
 	}
 	
 	public String toString() {

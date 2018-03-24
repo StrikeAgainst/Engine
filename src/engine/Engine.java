@@ -9,12 +9,14 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Random;
 
 import javax.swing.JFrame;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLAnimatorControl;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
@@ -24,18 +26,19 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.gl2.GLUT;
 
+import object.Ball;
 import object.Pawn;
 import object.Tile;
 import object.Wall;
 import world.Octree;
 import world.Point3D;
 
-public class MazeChaos extends JFrame {
+public class Engine extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	private static Animator animator = null;
 	
-	public MazeChaos() {
+	public Engine() {
 		super("Maze Chaos");
 
 		GLCapabilities cap = new GLCapabilities(null);
@@ -59,7 +62,7 @@ public class MazeChaos extends JFrame {
 	}
 	
 	public static void main(String[] args) {
-		new MazeChaos();
+		new Engine();
 	}
 	
 	static class WinRenderer extends GLCanvas implements GLEventListener, KeyListener {
@@ -82,8 +85,10 @@ public class MazeChaos extends JFrame {
 		private long newTick, lastTick = System.currentTimeMillis();
 		private Random random = new Random();
 		private ObjectContainer container = ObjectContainer.get();
+		private ArrayList<Collision> collisions;
 		private Octree octree = Octree.get();
 		private Player player;
+		private GLAnimatorControl animator;
 
 		public WinRenderer(GLCapabilities cap) {
 			super(cap);
@@ -104,6 +109,8 @@ public class MazeChaos extends JFrame {
             //gl.glEnable(GL2.GL_COLOR_MATERIAL);
             //gl.glEnable(GL2.GL_NORMALIZE);
             //gl.glShadeModel(GL2.GL_SMOOTH);
+            
+            animator = gLDrawable.getAnimator();
 		}
 
 		public void display(GLAutoDrawable gLDrawable) {
@@ -163,18 +170,36 @@ public class MazeChaos extends JFrame {
 			}
 			glu.gluLookAt(camX, camY, camZ, lookX, lookY, lookZ, uSinZ*cosY, uSinZ*sinY, -uCosZ);
 
+			for (EngineObject e : container) {
+				e.drawObject(gl, glut);
+			}
+			octree.draw(gl, glut);
+			
 			newTick = System.currentTimeMillis();
 			double tick = (double)(newTick-lastTick)/1000;
 			lastTick = newTick;
-			for (EngineObject e : container) {
-				e.drawObject(gl, glut);
-				if (e instanceof PhysicsObject) ((PhysicsObject)e).move(tick);
+			if (!pause) {
+				player.control(tick);
+				for (EngineObject e : container) {
+					e.update(tick);
+				}
+				ArrayList<EngineObject> outsiders = octree.update();
+				for (EngineObject outsider : outsiders) {
+					if (outsider == player.getPlayerObject()) {
+						player.reset();
+						octree.insertNode(outsider);
+					} else
+						outsider.destroy();
+				}
+				collisions = octree.detectCollisions();
+				for (Collision c : collisions)
+					c.resolve();
+				for (EngineObject e : container) {
+					if (e instanceof PhysicalObject) {
+						((PhysicalObject)e).move();
+					}
+				}
 			}
-			if (!pause) player.control(tick);
-			octree.update();
-			octree.detectCollisions().toString();
-			for (EngineObject e : container)
-				e.handleIntersections();
 			
 			float center = boardSize*panelSize/2;
 			gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT, new float[] {0.2f, 0.2f, 0.2f, 0.2f}, 0);
@@ -187,9 +212,8 @@ public class MazeChaos extends JFrame {
 			gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_FILL);
 			renderer.beginRendering(gLDrawable.getSurfaceWidth(), gLDrawable.getSurfaceHeight());
 		    renderer.setColor(0.0f, 1.0f, 0.0f, 0.8f);
-		    renderer.draw("FPS: "+gLDrawable.getAnimator().getLastFPS(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
+		    renderer.draw("FPS: "+animator.getLastFPS(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
 			renderer.draw("Player: "+player.getPlayerObject().toString(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
-			renderer.draw("Player: moving="+player.getPlayerObject().isMoving()+", airborne="+player.getPlayerObject().isAirborne(), 5, gLDrawable.getSurfaceHeight()-spacing*(++line));
 		    renderer.endRendering();
 
 			gl.glFlush();
@@ -226,13 +250,22 @@ public class MazeChaos extends JFrame {
 					}
 					break;
 				}
+				case KeyEvent.VK_E: {
+					Point3D point = new Point3D((float)(player.getPlayerObject().getCamX()+sinZ*cosY), (float)(player.getPlayerObject().getCamY()+sinZ*sinY), (float)(player.getPlayerObject().getCamZ()-cosZ));
+					(new Ball(point, 0.25f)).setMomentum(player.getPlayerObject().getMomentum());
+					break;
+				}
 				case KeyEvent.VK_R: {
-					player.getPlayerObject().setAnchor(Config.INIT_PLAYER_POS.clone());
-					player.getPlayerObject().stop();
+					player.reset();
+					break;
+				}
+				case KeyEvent.VK_G: {
+					Momentum.toggleGravity();
 					break;
 				}
 				case KeyEvent.VK_B: {
 					EngineObject.toggleShowBounding();
+					Octree.toggleShowBounding();
 					break;
 				}
 				case KeyEvent.VK_P: {

@@ -7,6 +7,7 @@ import engine.EngineObject;
 import world.BoundingBox;
 import world.Point3D;
 import world.Polygon;
+import world.PolygonException;
 
 public class Tile extends EngineObject {
 
@@ -22,16 +23,21 @@ public class Tile extends EngineObject {
 	public Tile(Point3D center, float size, float r, float g, float b) {
 		super(center, new BoundingBox(center, size/2, size/-2, size/2, size/-2, 0f, -0.01f));
 		float x = center.getX(), y = center.getY(), z = center.getZ();
-		main = new Polygon(new Point3D[] {
-				new Point3D(x+size/2, y+size/2, z), 
-				new Point3D(x+size/2, y-size/2, z), 
-				new Point3D(x-size/2, y-size/2, z), 
-				new Point3D(x-size/2, y+size/2, z)});
-		padding = new Polygon(new Point3D[] {
-				new Point3D(x+size/paddingScale, y+size/paddingScale, z+0.01f), 
-				new Point3D(x+size/paddingScale, y-size/paddingScale, z+0.01f), 
-				new Point3D(x-size/paddingScale, y-size/paddingScale, z+0.01f), 
-				new Point3D(x-size/paddingScale, y+size/paddingScale, z+0.01f)});
+		try {
+			main = new Polygon(new Point3D[] {
+					new Point3D(x+size/2, y+size/2, z), 
+					new Point3D(x+size/2, y-size/2, z), 
+					new Point3D(x-size/2, y-size/2, z), 
+					new Point3D(x-size/2, y+size/2, z)});
+			padding = new Polygon(new Point3D[] {
+					new Point3D(x+size/paddingScale, y+size/paddingScale, z+0.01f), 
+					new Point3D(x+size/paddingScale, y-size/paddingScale, z+0.01f), 
+					new Point3D(x-size/paddingScale, y-size/paddingScale, z+0.01f), 
+					new Point3D(x-size/paddingScale, y+size/paddingScale, z+0.01f)});
+		} catch (PolygonException e) {
+			System.out.println("Could not create Tile: "+e.getMessage());
+			System.exit(0);
+		}
 		this.size = size;
 		this.setColor(r, g, b);
 	}
@@ -52,9 +58,5 @@ public class Tile extends EngineObject {
 	public void setColor(float r, float g, float b) {
 		main.setColor(r, g, b);
 		padding.setColor(r+0.1f, g+0.1f, b+0.1f);
-	}
-	
-	public String toString() {
-		return "Tile:"+super.toString();
 	}
 }

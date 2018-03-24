@@ -1,13 +1,12 @@
 package engine;
 
-import java.util.ArrayList;
-
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
+import world.BoundingBox;
 import world.ObjectBounding;
+import world.Octree;
 import world.Point3D;
-import world.Vector3D;
 
 public abstract class EngineObject {
 
@@ -17,16 +16,18 @@ public abstract class EngineObject {
 	
 	protected int id;
 	protected boolean visible = true;
-	protected boolean moving = false;
 	protected boolean gravitational = false;
+	protected boolean highlight = false;
+	protected float ya = 0, za = 60;
 	protected Point3D anchor;
 	protected ObjectBounding bounding = null;
-	protected ArrayList<Intersection> intersections = new ArrayList<Intersection>();
+	protected BoundingBox broadPhase = null;
 	
 	public EngineObject(Point3D anchor, ObjectBounding bounding) {
 		this.id = EngineObject.ID_INCREMENT++;
 		this.anchor = anchor;
 		this.bounding = bounding;
+		this.broadPhase = bounding.boxify();
 		ObjectContainer.get().add(this);
 	}
 	
@@ -40,7 +41,11 @@ public abstract class EngineObject {
 		if (visible)
 			this.draw(gl, glut);
 		if (SHOW_BOUNDING && bounding != null)
-			bounding.draw(gl, glut, !intersections.isEmpty());
+			bounding.draw(gl, glut, highlight);
+	}
+	
+	public void update(double tick) {
+		highlight = false;
 	}
 	
 	public Point3D getAnchor() {
@@ -75,29 +80,25 @@ public abstract class EngineObject {
 		anchor.setZ(z);
 	}
 	
+	public float getYAngle() {
+		return ya;
+	}
+	
+	public void setYAngle(float ya) {
+		this.ya = ya;
+	}
+	
+	public float getZAngle() {
+		return za; 
+	}
+	
+	public void setZAngle(float za) {
+		this.za = za;
+	}
+	
 	public ObjectBounding getBounding(){
 		return bounding;
 	}
-	
-	public Vector3D intersects(EngineObject object){
-		return bounding.intersects(object.getBounding());
-	}
-	
-	public void resetIntersections() {
-		intersections = new ArrayList<Intersection>();
-	}
-	
-	public void addIntersection(Intersection intersection) {
-		intersections.add(intersection);
-	}
-	
-	public ArrayList<Intersection> getIntersections() {
-		return intersections;
-	}
-	
-	public boolean handleIntersections() {
-		return true;
-	};
 	
 	public void setVisible() {
 		visible = true;
@@ -108,18 +109,44 @@ public abstract class EngineObject {
 	}
 	
 	public boolean isMoving() {
-		return moving;
+		return false;
+	}
+	
+	public void highlight() {
+		highlight = true;
+	}
+	
+	public Collision collides(EngineObject object) {
+		if (object instanceof PhysicalObject)
+			return object.collides(this);
+		return null;
 	}
 	
 	public boolean isGravitational() {
 		return gravitational;
 	}
 	
+	public void destroy() {
+		ObjectContainer.get().remove(this);
+	}
+	
+	public ObjectBounding getBroadPhase() {
+		return broadPhase;
+	}
+	
 	public int getID() {
 		return id;
 	}
 	
+	public String getNameString() {
+		return getClass().getSimpleName();
+	}
+	
+	public String getAttributesString() {
+		return "[x="+anchor.getX()+", y="+anchor.getY()+", z="+anchor.getZ()+"]";
+	}
+	
 	public String toString() {
-		return id+":[x="+anchor.getX()+", y="+anchor.getY()+", z="+anchor.getZ()+"]";
+		return getNameString()+":"+getID()+":"+getAttributesString();
 	}
 }

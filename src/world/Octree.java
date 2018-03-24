@@ -3,13 +3,18 @@ package world;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.util.gl2.GLUT;
+
 import engine.Config;
 import engine.EngineObject;
-import engine.Intersection;
+import engine.PhysicalObject;
+import engine.Collision;
 
 public class Octree {
 
 	private static Octree octree = null;
+	public static boolean SHOW_BOUNDING = false;
 	private static final int[][] dimension_map = {{1,1,1},{1,1,-1},{1,-1,1},{1,-1,-1},{-1,1,1},{-1,1,-1},{-1,-1,1},{-1,-1,-1}};
 	
 	private int depth, size;
@@ -18,6 +23,7 @@ public class Octree {
 	private Octree[] octants = null;
 	private ArrayList<EngineObject> nodes = new ArrayList<EngineObject>();
 	private OctreeBounding bounding;
+	private boolean changed = false;
 	
 	private Octree(Octree parent, Point3D root, int size, int depth) {
 		this.parent = parent;
@@ -32,8 +38,22 @@ public class Octree {
 			octree = new Octree(null, Config.ROOT, (int) Math.pow(2, Config.OCTREE_MAX_DIMENSION_EXP), 0);
 		return octree;
 	}
-		
+	
+	public static void toggleShowBounding() {
+		Octree.SHOW_BOUNDING = !Octree.SHOW_BOUNDING;
+	}
+	
+	public void draw(GL2 gl, GLUT glut) {
+		if (SHOW_BOUNDING) {
+			bounding.draw(gl,  glut, changed);
+			if (octants != null)
+				for (int i = 0; i < octants.length; i++)
+					octants[i].draw(gl,  glut);
+		}
+	}
+	
 	public ArrayList<EngineObject> update() {
+		changed = false;
 		ArrayList<EngineObject> queue = new ArrayList<EngineObject>();
 		EngineObject node;
 		
@@ -43,77 +63,88 @@ public class Octree {
 
 		for (Iterator<EngineObject> it = queue.iterator(); it.hasNext();) {
 			node = it.next();
-			if (encloses(node)) {
-				insertNode(node);
+			Octree octant = insertNode(node);
+			if (octant != null) {
+				changed = true;
 				it.remove();
-			}		
+			} else
+				deleteOctants();
 		}
-				
+		
 		for (Iterator<EngineObject> it = nodes.iterator(); it.hasNext();) {
 			node = it.next();
 			if (node.isMoving()) {
-				if (!encloses(node)){
-					queue.add(node);
+				if (!encloses(node)) {
+					changed = true;
 					it.remove();
-				} else if (octants != null)
-					for (int i = 0; i < octants.length; i++) 
-						if (octants[i].encloses(node)) {
-							octants[i].insertNode(node);
+					deleteOctants();
+					queue.add(node);
+				} else if (octants != null) {
+					for (int i = 0; i < octants.length; i++) {
+						Octree octant = octants[i].insertNode(node);
+						if (octant != null) {
+							changed = true;
 							it.remove();
 							break;
 						}
+					}
+				}
 			}
 		}
+
 		return queue;
 	}
 	
-	public ArrayList<Intersection> detectCollisions() {
+	public ArrayList<Collision> detectCollisions() {
 		return detectCollisions(new ArrayList<EngineObject>());
 	}
 	
-	public ArrayList<Intersection> detectCollisions(ArrayList<EngineObject> parentNodes) {
-		ArrayList<Intersection> intersections = new ArrayList<Intersection>();
-		Vector3D normal = null;
-		int count1 = 0, count2 = 0;
+	public ArrayList<Collision> detectCollisions(ArrayList<EngineObject> parentNodes) {
+		ArrayList<Collision> collisions = new ArrayList<Collision>();
+		Collision collision;
 
-		//if (nodes.size() > 0) System.out.println(toString());
+		//if (changed) System.out.println(toString());
 		
-		for (EngineObject node1 : nodes) {
-			node1.resetIntersections();
-			count2 = 0;
+		for (EngineObject node1 : nodes)
 			for (EngineObject node2 : nodes) {
-				if (count2 >= count1)
+				if (node1 == node2)
 					break;
-				normal = node1.intersects(node2);
-				if (normal != null) {
-					Intersection intersection = new Intersection(node1, node2, normal);
-					intersections.add(intersection);
-					node1.addIntersection(intersection);
-					node2.addIntersection(intersection.reverse());
-				}
-				count2++;
+				collision = node1.collides(node2);
+				if (collision != null) 
+					collisions.add(collision);
 			}
-			count1++;
-		}
 
 		for (EngineObject node1 : nodes)
 			for (EngineObject node2 : parentNodes) {
-				normal = node1.intersects(node2);
-				if (normal != null) {
-					Intersection intersection = new Intersection(node1, node2, normal);
-					intersections.add(intersection);
-					node1.addIntersection(intersection);
-					node2.addIntersection(intersection.reverse());
-				}
+				collision = node1.collides(node2);
+				if (collision != null) 
+					collisions.add(collision);
 			}
 
 		parentNodes.addAll(nodes);
 		
 		if (octants != null)
 			for (int i = 0; i < octants.length; i++)
-				intersections.addAll(octants[i].detectCollisions(parentNodes));
+				collisions.addAll(octants[i].detectCollisions(new ArrayList<EngineObject>(parentNodes)));
 		
-		return intersections;
+		return collisions;
+	}
+	
+	public ArrayList<Collision> detectCollisions(PhysicalObject pnode) {
+		ArrayList<Collision> collisions = new ArrayList<Collision>();
+		Collision collision = null;
+		
+		for (EngineObject node : nodes) {
+			collision = pnode.collides(node);
+			if (collision != null)
+				collisions.add(collision);
+		}
+		
+		if (octants != null)
+			for (int i = 0; i < octants.length; i++)
+				collisions.addAll(octants[i].detectCollisions(pnode));
+		
+		return collisions;
 	}
 	
 	public Octree getParent() {
@@ -125,21 +156,24 @@ public class Octree {
 	}
 	
 	public boolean createOctants() {
-		if (depth < Config.OCTREE_MAX_DEPTH && size > 1) {
-			int halfsize = size/2;
-			octants = new Octree[dimension_map.length];
+		if (depth >= Config.OCTREE_MAX_DEPTH || size <= 1)
+			return false;
 			
-			for (int i = 0; i < octants.length; i++) {
-				Point3D childRoot = root.clone();
-				childRoot.move(dimension_map[i][0]*halfsize, dimension_map[i][1]*halfsize, dimension_map[i][2]*halfsize);
-				octants[i] = new Octree(this, childRoot.clone(), halfsize, depth+1);
-			}
-			return true;
+		int halfsize = size/2;
+		octants = new Octree[dimension_map.length];
+		
+		for (int i = 0; i < octants.length; i++) {
+			Point3D octantRoot = root.clone();
+			octantRoot.move(dimension_map[i][0]*halfsize, dimension_map[i][1]*halfsize, dimension_map[i][2]*halfsize);
+			octants[i] = new Octree(this, octantRoot, halfsize, depth+1);
 		}
-		return false;
+		return true;
 	}
 	
 	public boolean deleteOctants() {
+		if (octants == null)
+			return true;
+
 		if (emptyRecursive()) {
 			octants = null;
 			return true;
@@ -148,13 +182,18 @@ public class Octree {
 	}
 	
 	public Octree insertNode(EngineObject node) {
+		if (!encloses(node))
+			return null;
+		
 		if (nodes.contains(node))
 			return this;
 
 		if (octants != null || createOctants())		
-			for (int i = 0; i < octants.length; i++) 
-				if (octants[i].encloses(node))
-					return octants[i].insertNode(node);
+			for (int i = 0; i < octants.length; i++) {
+				Octree octant = octants[i].insertNode(node);
+				if (octant != null)
+					return octant;
+			}
 		
 		nodes.add(node);
 		return this;
@@ -169,7 +208,7 @@ public class Octree {
 		if (octants != null) 
 			for (int i = 0; i < octants.length; i++) {
 				Octree container = octants[i].removeNode(node);
-				if (container instanceof Octree)
+				if (container != null)
 					return container;
 			}
 		return null;
@@ -197,14 +236,15 @@ public class Octree {
 	}
 	
 	public boolean emptyRecursive() {
-		if (nodes.isEmpty())
-			return true;
+		if (!nodes.isEmpty())
+			return false;
 		
 		if (octants != null) 
 			for (int i = 0; i < octants.length; i++) 
-				if (octants[i].emptyRecursive())
-					return true;
-		return false;
+				if (!octants[i].emptyRecursive())
+					return false;
+		
+		return true;
 	}
 	
 	public ArrayList<EngineObject> getNodes() {
@@ -234,6 +274,6 @@ public class Octree {
 	}
 	
 	public String toString() {
-		return "Octree: [depth: "+depth+", mapping: "+getMapping()+", size: "+nodes.size()+", nodes:"+nodes.toString()+"]";
+		return "Octree:[depth: "+depth+", mapping: "+getMapping()+", size: "+nodes.size()+", nodes:"+nodes.toString()+"]";
 	}
 }

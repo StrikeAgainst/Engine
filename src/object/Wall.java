@@ -7,6 +7,7 @@ import engine.EngineObject;
 import world.BoundingBox;
 import world.Point3D;
 import world.Polygon;
+import world.PolygonException;
 
 public class Wall extends EngineObject {
 
@@ -22,34 +23,39 @@ public class Wall extends EngineObject {
 	public Wall(Point3D center, float width, float height, boolean vertical, float r, float g, float b) {
 		super(center, new BoundingBox(center, (vertical?width/2:0.01f), (vertical?width/-2:-0.01f), (vertical?0.01f:width/2), (vertical?-0.01f:width/-2), height, 0));
 		float x = center.getX(), y = center.getY(), z = center.getZ();
-		main = new Polygon(new Point3D[] {
-				new Point3D(x+(vertical?width/2:0), y+(vertical?0:width/2), z), 
-				new Point3D(x-(vertical?width/2:0), y+(vertical?0:width/2), z+(vertical?0:height)), 
-				new Point3D(x-(vertical?width/2:0), y-(vertical?0:width/2), z+height), 
-				new Point3D(x+(vertical?width/2:0), y-(vertical?0:width/2), z+(vertical?height:0))});
-		float pwidth = width/paddingScale, margin = (width/2)-pwidth;
-		if (vertical) {
-			padding1 = new Polygon(new Point3D[] {
-					new Point3D(x+pwidth, y+0.01f, z+margin), 
-					new Point3D(x-pwidth, y+0.01f, z+margin), 
-					new Point3D(x-pwidth, y+0.01f, z+height-margin), 
-					new Point3D(x+pwidth, y+0.01f, z+height-margin)});
-			padding2 = new Polygon(new Point3D[] {
-					new Point3D(x+pwidth, y-0.01f, z+margin), 
-					new Point3D(x-pwidth, y-0.01f, z+margin), 
-					new Point3D(x-pwidth, y-0.01f, z+height-margin), 
-					new Point3D(x+pwidth, y-0.01f, z+height-margin)});
-		} else {
-			padding1 = new Polygon(new Point3D[] {
-					new Point3D(x+0.01f, y+pwidth, z+margin), 
-					new Point3D(x+0.01f, y-pwidth, z+margin), 
-					new Point3D(x+0.01f, y-pwidth, z+height-margin), 
-					new Point3D(x+0.01f, y+pwidth, z+height-margin)});
-			padding2 = new Polygon(new Point3D[] {
-					new Point3D(x-0.01f, y+pwidth, z+margin), 
-					new Point3D(x-0.01f, y-pwidth, z+margin), 
-					new Point3D(x-0.01f, y-pwidth, z+height-margin), 
-					new Point3D(x-0.01f, y+pwidth, z+height-margin)});
+		try {
+			main = new Polygon(new Point3D[] {
+					new Point3D(x+(vertical?width/2:0), y+(vertical?0:width/2), z), 
+					new Point3D(x-(vertical?width/2:0), y+(vertical?0:width/2), z+(vertical?0:height)), 
+					new Point3D(x-(vertical?width/2:0), y-(vertical?0:width/2), z+height), 
+					new Point3D(x+(vertical?width/2:0), y-(vertical?0:width/2), z+(vertical?height:0))});
+			float pwidth = width/paddingScale, margin = (width/2)-pwidth;
+			if (vertical) {
+				padding1 = new Polygon(new Point3D[] {
+						new Point3D(x+pwidth, y+0.01f, z+margin), 
+						new Point3D(x-pwidth, y+0.01f, z+margin), 
+						new Point3D(x-pwidth, y+0.01f, z+height-margin), 
+						new Point3D(x+pwidth, y+0.01f, z+height-margin)});
+				padding2 = new Polygon(new Point3D[] {
+						new Point3D(x+pwidth, y-0.01f, z+margin), 
+						new Point3D(x-pwidth, y-0.01f, z+margin), 
+						new Point3D(x-pwidth, y-0.01f, z+height-margin), 
+						new Point3D(x+pwidth, y-0.01f, z+height-margin)});
+			} else {
+				padding1 = new Polygon(new Point3D[] {
+						new Point3D(x+0.01f, y+pwidth, z+margin), 
+						new Point3D(x+0.01f, y-pwidth, z+margin), 
+						new Point3D(x+0.01f, y-pwidth, z+height-margin), 
+						new Point3D(x+0.01f, y+pwidth, z+height-margin)});
+				padding2 = new Polygon(new Point3D[] {
+						new Point3D(x-0.01f, y+pwidth, z+margin), 
+						new Point3D(x-0.01f, y-pwidth, z+margin), 
+						new Point3D(x-0.01f, y-pwidth, z+height-margin), 
+						new Point3D(x-0.01f, y+pwidth, z+height-margin)});
+			}
+		} catch (PolygonException e) {
+			System.out.println("Could not create Wall: "+e.getMessage());
+			System.exit(0);
 		}
 		this.width = width;
 		this.setColor(r, g, b);
@@ -77,9 +83,5 @@ public class Wall extends EngineObject {
 		main.draw(gl, glut);
 		padding1.draw(gl, glut);
 		padding2.draw(gl, glut);
-	}
-	
-	public String toString() {
-		return "Wall:"+super.toString();
 	}
 }

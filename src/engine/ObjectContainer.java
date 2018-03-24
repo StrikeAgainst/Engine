@@ -30,13 +30,14 @@ public class ObjectContainer extends Observable implements Iterable<EngineObject
 	}
 	
 	public boolean add(EngineObject e) {
-		for (EngineObject object : objects) {
-			if (e == object) return false;
+		for (EngineObject object : objects)
+			if (e == object)
+				return true;
+		if (e.getBounding() == null || octree.insertNode(e) != null) {
+			objects.add(e);
+			return true;
 		}
-		objects.add(e.getID(), e);
-		if (e.getBounding() != null)
-			octree.insertNode(e);
-		return true;
+		return false;
 	}
 	
 	public boolean remove(EngineObject e) {
@@ -45,10 +46,6 @@ public class ObjectContainer extends Observable implements Iterable<EngineObject
 	
 	public void clear() {
 		objects.clear();
-	}
-	
-	public EngineObject get(int id) {
-		return objects.get(id);
 	}
 	
 	public boolean contains(EngineObject e){
@@ -66,15 +63,4 @@ public class ObjectContainer extends Observable implements Iterable<EngineObject
 	public void addObserver(Observer o) {
 		this.addObserver(o);
 	}
-	
-	public String getContentString() {
-		String s = "";
-		int c = 0;
-		for (EngineObject object : objects) {
-			s += "Object "+c+": "+object.toString()+", ";
-			c++;
-		}
-		return s;
-	}
-
 }

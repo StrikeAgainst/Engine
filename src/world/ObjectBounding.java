@@ -1,8 +1,5 @@
 package world;
 
-import com.jogamp.opengl.GL2;
-import com.jogamp.opengl.util.gl2.GLUT;
-
 public abstract class ObjectBounding extends Bounding {
 	
 	public ObjectBounding(Point3D anchor) {
@@ -11,5 +8,23 @@ public abstract class ObjectBounding extends Bounding {
 
 	public abstract Vector3D intersects(Bounding bounding);
 	
-	public abstract void draw(GL2 gl, GLUT glut, boolean highlight);
+	public abstract float getFrontBound(boolean relative);
+	
+	public abstract float getBackBound(boolean relative);
+	
+	public abstract float getLeftBound(boolean relative);
+	
+	public abstract float getRightBound(boolean relative);
+	
+	public abstract float getTopBound(boolean relative);
+	
+	public abstract float getBottomBound(boolean relative);
+	
+	public BoundingBox boxify() {
+		return new BoundingBox(anchor, getFrontBound(true), getBackBound(true), getLeftBound(true), getRightBound(true), getTopBound(true), getBottomBound(true));
+	};
+	
+	public abstract ObjectBounding clone();
+	
+	public abstract ObjectBounding clone(Point3D anchor);
 }
