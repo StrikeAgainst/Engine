@@ -5,7 +5,6 @@ import com.jogamp.opengl.util.gl2.GLUT;
 
 import world.BoundingBox;
 import world.ObjectBounding;
-import world.Octree;
 import world.Point3D;
 
 public abstract class EngineObject {
@@ -20,8 +19,8 @@ public abstract class EngineObject {
 	protected boolean highlight = false;
 	protected float ya = 0, za = 60;
 	protected Point3D anchor;
-	protected ObjectBounding bounding = null;
-	protected BoundingBox broadPhase = null;
+	protected ObjectBounding bounding;
+	protected BoundingBox broadPhase;
 	
 	public EngineObject(Point3D anchor, ObjectBounding bounding) {
 		this.id = EngineObject.ID_INCREMENT++;

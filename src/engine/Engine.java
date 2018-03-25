@@ -66,14 +66,13 @@ public class Engine extends JFrame {
 	}
 	
 	static class WinRenderer extends GLCanvas implements GLEventListener, KeyListener {
-		
-		private static final long serialVersionUID = 1L;
+
 		private GL2 gl;
 		private GLU glu;
 		private GLUT glut;
 		private TextRenderer renderer = new TextRenderer(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 		private Cursor blankCursor = Toolkit.getDefaultToolkit().createCustomCursor(new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB), new Point(0, 0), "blank cursor");
-		private enum CamMode {FP, TP, BIRD};
+		private enum CamMode {FP, TP, BIRD}
 		private CamMode cm;
 		
 		private final int boardSize = 12;
@@ -96,7 +95,7 @@ public class Engine extends JFrame {
 			glut = new GLUT();
 			cm = CamMode.FP;
 			initMaze(boardSize);
-            player = new Player(new Pawn(Config.INIT_PLAYER_POS.clone(),0.4f,0.1f));
+            player = new Player(new Pawn(new Point3D(Config.INIT_PLAYER_POS),0.4f,0.1f));
             this.addKeyListener(this);
             this.addKeyListener(player);
             this.addMouseMotionListener(player);

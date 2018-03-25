@@ -49,12 +49,11 @@ public class Polygon {
 	}
 	
 	public void draw(GL2 gl, GLUT glut) {
-		Point3D[] points = getPoints();
 		gl.glColor3f(r,g,b);
 		gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_FILL);
 		gl.glBegin(GL2.GL_POLYGON);
-		for (int i = 0; i < points.length; i++)
-			gl.glVertex3f(points[i].getX(), points[i].getY(), points[i].getZ());
+		for (Point3D point : getPoints())
+			gl.glVertex3f(point.getX(), point.getY(), point.getZ());
 		gl.glEnd();
 	}
 	

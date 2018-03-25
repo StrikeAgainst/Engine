@@ -22,9 +22,9 @@ public abstract class ObjectBounding extends Bounding {
 	
 	public BoundingBox boxify() {
 		return new BoundingBox(anchor, getFrontBound(true), getBackBound(true), getLeftBound(true), getRightBound(true), getTopBound(true), getBottomBound(true));
-	};
-	
+	}
+
 	public abstract ObjectBounding clone();
-	
+
 	public abstract ObjectBounding clone(Point3D anchor);
 }

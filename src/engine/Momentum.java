@@ -6,8 +6,6 @@ public class Momentum {
 	
 	private static boolean GRAVITY = true;
 	protected float vx = 0, vy = 0, vz = 0, vya = 0, vza = 0;
-	public final static float g = -2.00f;
-	//public final static float g = -9.81f;
 	
 	public Momentum() {}
 	
@@ -18,6 +16,14 @@ public class Momentum {
 		this.vya = vya;
 		this.vza = vza;
 	}
+
+	public Momentum(Momentum m) {
+		this.vx = m.getVX();
+		this.vy = m.getVY();
+		this.vz = m.getVZ();
+		this.vya = m.getVYAngle();
+		this.vza = m.getVZAngle();
+	}
 	
 	public static void toggleGravity() {
 		GRAVITY = !GRAVITY;
@@ -25,7 +31,7 @@ public class Momentum {
 		
 	public void update(double tick, boolean gravitational) {
 		if (GRAVITY && gravitational)
-			this.vz += (float)(PhysicalObject.g*tick);
+			this.vz += (float)(Physics.g*tick);
 	}
 	
 	public void addMomentum(Momentum momentum) {
@@ -110,10 +116,6 @@ public class Momentum {
 	
 	public boolean isStill() {
 		return (vx == 0 && vy == 0 && vz == 0 && vya == 0 && vza == 0);
-	}
-	
-	public Momentum clone() {
-		return new Momentum(vx, vy, vz, vya, vza);
 	}
 	
 	public String toString() {

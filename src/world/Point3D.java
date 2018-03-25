@@ -10,6 +10,12 @@ public class Point3D {
 		this.y = y;
 		this.z = z;
 	}
+
+	public Point3D(Point3D p) {
+		this.x = p.getX();
+		this.y = p.getY();
+		this.z = p.getZ();
+	}
 	
 	public float getX() {
 		return x;
@@ -72,12 +78,7 @@ public class Point3D {
 	}
 	
 	public float[] getArray() {
-		float[] p = {x, y, z};
-		return p;
-	}
-	
-	public Point3D clone() {
-		return new Point3D(x, y, z);
+		return new float[] {x, y, z};
 	}
 	
 	public boolean equals(Point3D p) {

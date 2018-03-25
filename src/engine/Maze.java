@@ -67,11 +67,9 @@ public class Maze {
 		return m;
 	}
 	
-	private int generate(int x, int y) {
+	private void generate(int x, int y) {
         visited[x][y] = true;
-        int back = 0;
-        while (!visited[x][y+1] || !visited[x+1][y] || !visited[x][y-1] || !visited[x-1][y]) {
-            if (random.nextInt(N) == 0) back = random.nextInt(N);
+        while (!visited[x][y+1] || !visited[x+1][y] || !visited[x][y-1] || !visited[x-1][y])
             while (true) {
                 double r = random.nextInt(4);
                 if (r == 0 && !visited[x][y+1]) {
@@ -96,9 +94,6 @@ public class Maze {
                     break;
                 }
             }
-    		if (back > 0) return back - 1;
-        }
-        return 0;
     }
 	
 	public int getSize() {

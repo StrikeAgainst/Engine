@@ -10,6 +10,12 @@ public class Vector3D {
 		this.y = y;
 		this.z = z;
 	}
+
+	public Vector3D(Vector3D v) {
+		this.x = v.getX();
+		this.y = v.getY();
+		this.z = v.getZ();
+	}
 	
 	public float getX() {
 		return x;
@@ -107,12 +113,7 @@ public class Vector3D {
 	}
 	
 	public float[] getArray() {
-		float[] p = {x, y, z};
-		return p;
-	}
-	
-	public Vector3D clone() {
-		return new Vector3D(x, y, z);
+		return new float[] {x, y, z};
 	}
 	
 	public boolean equals(Vector3D v) {

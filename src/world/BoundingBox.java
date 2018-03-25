@@ -65,7 +65,7 @@ public class BoundingBox extends ObjectBounding {
 	}
 	
 	public Point3D[] getCorners() {
-		Point3D[] points = {new Point3D(getFrontBound(false),getRightBound(false),getTopBound(false)),
+		return new Point3D[] {new Point3D(getFrontBound(false),getRightBound(false),getTopBound(false)),
 							new Point3D(getFrontBound(false),getRightBound(false),getBottomBound(false)),
 							new Point3D(getFrontBound(false),getLeftBound(false),getBottomBound(false)),
 							new Point3D(getFrontBound(false),getLeftBound(false),getTopBound(false)),
@@ -73,7 +73,6 @@ public class BoundingBox extends ObjectBounding {
 							new Point3D(getBackBound(false),getLeftBound(false),getBottomBound(false)),
 							new Point3D(getBackBound(false),getRightBound(false),getBottomBound(false)),
 							new Point3D(getBackBound(false),getRightBound(false),getTopBound(false))};
-		return points;
 	}
 	
 	public void draw(GL2 gl, GLUT glut, boolean highlight) {
@@ -84,11 +83,9 @@ public class BoundingBox extends ObjectBounding {
 			gl.glColor3f(0f,0f,1f);
 		gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_LINE);
 		gl.glBegin(GL2.GL_QUADS);
-		
-		int[] quad_map = {0,1,2,3,2,3,4,5,4,5,6,7,6,7,0,1};
-		for (int i = 0; i < quad_map.length; i++) {
-			gl.glVertex3f(points[quad_map[i]].getX(), points[quad_map[i]].getY(), points[quad_map[i]].getZ());
-		}
+
+		for (int quad : new int[] {0,1,2,3,2,3,4,5,4,5,6,7,6,7,0,1})
+			gl.glVertex3f(points[quad].getX(), points[quad].getY(), points[quad].getZ());
 		gl.glEnd();
 	}
 	
@@ -136,12 +133,12 @@ public class BoundingBox extends ObjectBounding {
 	
 	public BoundingBox boxify() {
 		return (BoundingBox) clone();
-	};
-	
-	public ObjectBounding clone() {
-		return new BoundingBox(anchor.clone(), front, back, left, right, top, bottom);
 	}
-	
+
+	public ObjectBounding clone() {
+		return new BoundingBox(new Point3D(anchor), front, back, left, right, top, bottom);
+	}
+
 	public ObjectBounding clone(Point3D anchor) {
 		return new BoundingBox(anchor, front, back, left, right, top, bottom);
 	}

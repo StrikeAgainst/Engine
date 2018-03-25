@@ -8,7 +8,6 @@ import world.Vector3D;
 public abstract class PhysicalObject extends EngineObject {
 
 	protected Momentum momentum;
-	public final static float g = -9.81f;
 	public static float restitution = 0.4f;
 	protected float mass = 0f;
 	protected Vector3D nextMovement;
@@ -89,7 +88,7 @@ public abstract class PhysicalObject extends EngineObject {
 	}
 	
 	public void setMomentum(Momentum momentum) {
-		this.momentum = momentum.clone();
+		this.momentum = new Momentum(momentum);
 	}
 	
 	public void addMomentum(Momentum momentum) {

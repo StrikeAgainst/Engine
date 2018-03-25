@@ -20,9 +20,8 @@ public class BoundingSphere extends ObjectBounding {
 	public boolean encloses(Bounding bounding) {
 		switch (bounding.getClass().getSimpleName()) {
 			case "BoundingBox": {
-				Point3D[] points = ((BoundingBox) bounding).getCorners();
-				for (int i = 0; i < points.length; i++)
-					if (!encloses(points[i]))
+				for (Point3D point : ((BoundingBox) bounding).getCorners())
+					if (!encloses(point))
 						return false;
 				return true;
 			}
@@ -48,10 +47,6 @@ public class BoundingSphere extends ObjectBounding {
 				return null;
 			}
 		}
-	}
-
-	public Point3D[] getPoints() {
-		return null;
 	}
 
 	public float getRadius() {
@@ -110,11 +105,11 @@ public class BoundingSphere extends ObjectBounding {
 		glut.glutWireSphere(radius, 8, 8);
 		gl.glTranslatef(anchor.getX() * (-1), anchor.getY() * (-1), anchor.getZ() * (-1));
 	}
-	
+
 	public ObjectBounding clone() {
-		return new BoundingSphere(anchor.clone(), radius);
+		return new BoundingSphere(new Point3D(anchor), radius);
 	}
-	
+
 	public ObjectBounding clone(Point3D anchor) {
 		return new BoundingSphere(anchor, radius);
 	}

@@ -1,5 +1,7 @@
 package engine;
 
+import world.Point3D;
+
 import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
@@ -11,8 +13,7 @@ public class Player implements KeyListener, MouseMotionListener {
 
 	private Robot robot;
 	
-	private final float sensitivity = 0.15f, speed0 = 1.0f, speedMult = 2; 
-	private float jumpHeight = 1.0f;
+	private static final float SENSITIVITY = 0.15f, speed0 = 1.0f, speedMult = 2, jumpHeight = 1.0f;
 	private double xCenter, yCenter, sinY, cosY;
 	private float xMove = 0, yMove = 0, zMove = 0, speed = speed0;
 	private boolean cameraZLocked = false, controlsOn = true, mouseOn = true, noClip = false;
@@ -129,8 +130,8 @@ public class Player implements KeyListener, MouseMotionListener {
 	public void mouseMoved(MouseEvent e) {
 		if (controlsOn && mouseOn) {
 			double xDiff = xCenter-e.getXOnScreen(), yDiff = e.getYOnScreen()-yCenter;
-			double yAngle = playerObject.getYAngle()+xDiff*sensitivity;
-			double zAngle = playerObject.getZAngle()-yDiff*sensitivity;
+			double yAngle = playerObject.getYAngle()+xDiff*SENSITIVITY;
+			double zAngle = playerObject.getZAngle()-yDiff*SENSITIVITY;
 			if (yAngle > 360) yAngle -= 360;
 			else if (yAngle < 0) yAngle += 360;
 			if (zAngle > 180) zAngle = 180;
@@ -158,7 +159,7 @@ public class Player implements KeyListener, MouseMotionListener {
 	}
 	
 	public void reset() {
-		playerObject.setAnchor(Config.INIT_PLAYER_POS.clone());
+		playerObject.setAnchor(new Point3D(Config.INIT_PLAYER_POS));
 		playerObject.stop();
 	}
 	

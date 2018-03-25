@@ -21,7 +21,7 @@ public class Octree {
 	private final Octree parent;
 	private Point3D root;
 	private Octree[] octants = null;
-	private ArrayList<EngineObject> nodes = new ArrayList<EngineObject>();
+	private ArrayList<EngineObject> nodes = new ArrayList<>();
 	private OctreeBounding bounding;
 	private boolean changed = false;
 	
@@ -47,19 +47,19 @@ public class Octree {
 		if (SHOW_BOUNDING) {
 			bounding.draw(gl,  glut, changed);
 			if (octants != null)
-				for (int i = 0; i < octants.length; i++)
-					octants[i].draw(gl,  glut);
+				for (Octree octant : octants)
+					octant.draw(gl,  glut);
 		}
 	}
 	
 	public ArrayList<EngineObject> update() {
 		changed = false;
-		ArrayList<EngineObject> queue = new ArrayList<EngineObject>();
+		ArrayList<EngineObject> queue = new ArrayList<>();
 		EngineObject node;
 		
 		if (octants != null)
-			for (int i = 0; i < octants.length; i++)
-				queue.addAll(octants[i].update());
+			for (Octree octant : octants)
+				queue.addAll(octant.update());
 
 		for (Iterator<EngineObject> it = queue.iterator(); it.hasNext();) {
 			node = it.next();
@@ -67,8 +67,8 @@ public class Octree {
 			if (octant != null) {
 				changed = true;
 				it.remove();
-			} else
-				deleteOctants();
+			} else if (emptyRecursive())
+                octants = null;
 		}
 		
 		for (Iterator<EngineObject> it = nodes.iterator(); it.hasNext();) {
@@ -77,18 +77,16 @@ public class Octree {
 				if (!encloses(node)) {
 					changed = true;
 					it.remove();
-					deleteOctants();
+                    if (emptyRecursive())
+                        octants = null;
 					queue.add(node);
-				} else if (octants != null) {
-					for (int i = 0; i < octants.length; i++) {
-						Octree octant = octants[i].insertNode(node);
-						if (octant != null) {
+				} else if (octants != null)
+					for (Octree octant : octants)
+						if (octant.insertNode(node) != null) {
 							changed = true;
 							it.remove();
 							break;
 						}
-					}
-				}
 			}
 		}
 
@@ -96,11 +94,11 @@ public class Octree {
 	}
 	
 	public ArrayList<Collision> detectCollisions() {
-		return detectCollisions(new ArrayList<EngineObject>());
+		return detectCollisions(new ArrayList<>());
 	}
 	
 	public ArrayList<Collision> detectCollisions(ArrayList<EngineObject> parentNodes) {
-		ArrayList<Collision> collisions = new ArrayList<Collision>();
+		ArrayList<Collision> collisions = new ArrayList<>();
 		Collision collision;
 
 		//if (changed) System.out.println(toString());
@@ -124,15 +122,15 @@ public class Octree {
 		parentNodes.addAll(nodes);
 		
 		if (octants != null)
-			for (int i = 0; i < octants.length; i++)
-				collisions.addAll(octants[i].detectCollisions(new ArrayList<EngineObject>(parentNodes)));
+            for (Octree octant : octants)
+				collisions.addAll(octant.detectCollisions(new ArrayList<>(parentNodes)));
 		
 		return collisions;
 	}
 	
 	public ArrayList<Collision> detectCollisions(PhysicalObject pnode) {
-		ArrayList<Collision> collisions = new ArrayList<Collision>();
-		Collision collision = null;
+		ArrayList<Collision> collisions = new ArrayList<>();
+		Collision collision;
 		
 		for (EngineObject node : nodes) {
 			collision = pnode.collides(node);
@@ -141,8 +139,8 @@ public class Octree {
 		}
 		
 		if (octants != null)
-			for (int i = 0; i < octants.length; i++)
-				collisions.addAll(octants[i].detectCollisions(pnode));
+            for (Octree octant : octants)
+				collisions.addAll(octant.detectCollisions(pnode));
 		
 		return collisions;
 	}
@@ -163,22 +161,11 @@ public class Octree {
 		octants = new Octree[dimension_map.length];
 		
 		for (int i = 0; i < octants.length; i++) {
-			Point3D octantRoot = root.clone();
+			Point3D octantRoot = new Point3D(root);
 			octantRoot.move(dimension_map[i][0]*halfsize, dimension_map[i][1]*halfsize, dimension_map[i][2]*halfsize);
 			octants[i] = new Octree(this, octantRoot, halfsize, depth+1);
 		}
 		return true;
-	}
-	
-	public boolean deleteOctants() {
-		if (octants == null)
-			return true;
-
-		if (emptyRecursive()) {
-			octants = null;
-			return true;
-		}
-		return false;
 	}
 	
 	public Octree insertNode(EngineObject node) {
@@ -188,11 +175,11 @@ public class Octree {
 		if (nodes.contains(node))
 			return this;
 
-		if (octants != null || createOctants())		
-			for (int i = 0; i < octants.length; i++) {
-				Octree octant = octants[i].insertNode(node);
-				if (octant != null)
-					return octant;
+		if (octants != null || createOctants())
+            for (Octree octant : octants) {
+                Octree container = octant.insertNode(node);
+				if (container != null)
+					return container;
 			}
 		
 		nodes.add(node);
@@ -201,13 +188,14 @@ public class Octree {
 
 	public Octree removeNode(EngineObject node) {
 		if (nodes.contains(node) && nodes.remove(node)){
-			deleteOctants();
+            if (emptyRecursive())
+                octants = null;
 			return this;
 		}
 		
-		if (octants != null) 
-			for (int i = 0; i < octants.length; i++) {
-				Octree container = octants[i].removeNode(node);
+		if (octants != null)
+            for (Octree octant : octants) {
+				Octree container = octant.removeNode(node);
 				if (container != null)
 					return container;
 			}
@@ -222,10 +210,10 @@ public class Octree {
 		if (nodes.contains(node))
 			return this;
 		
-		if (octants != null) 
-			for (int i = 0; i < octants.length; i++) {
-				Octree container = octants[i].getNodeContainer(node);
-				if (container instanceof Octree)
+		if (octants != null)
+            for (Octree octant : octants) {
+				Octree container = octant.getNodeContainer(node);
+				if (container != null)
 					return container;
 			}
 		return null;
@@ -239,9 +227,9 @@ public class Octree {
 		if (!nodes.isEmpty())
 			return false;
 		
-		if (octants != null) 
-			for (int i = 0; i < octants.length; i++) 
-				if (!octants[i].emptyRecursive())
+		if (octants != null)
+            for (Octree octant : octants)
+				if (!octant.emptyRecursive())
 					return false;
 		
 		return true;
@@ -252,11 +240,11 @@ public class Octree {
 	}
 
 	public ArrayList<EngineObject> getNodesRecursive() {
-		ArrayList<EngineObject> rec = new ArrayList<EngineObject>(nodes);
+		ArrayList<EngineObject> rec = new ArrayList<>(nodes);
 		
-		if (octants != null) 
-			for (int i = 0; i < octants.length; i++)
-				rec.addAll(octants[i].getNodesRecursive());
+		if (octants != null)
+            for (Octree octant : octants)
+				rec.addAll(octant.getNodesRecursive());
 		
 		return rec;
 	}

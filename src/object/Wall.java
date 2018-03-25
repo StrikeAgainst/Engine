@@ -11,8 +11,7 @@ import world.PolygonException;
 
 public class Wall extends EngineObject {
 
-	private static final float SHADE = 0.5f;
-	private final float paddingScale = 2.4f;
+	private static final float SHADE = 0.5f, PADDING_SCALE = 2.4f;
 	private float width, height;
 	private Polygon main, padding1, padding2;
 	
@@ -29,7 +28,7 @@ public class Wall extends EngineObject {
 					new Point3D(x-(vertical?width/2:0), y+(vertical?0:width/2), z+(vertical?0:height)), 
 					new Point3D(x-(vertical?width/2:0), y-(vertical?0:width/2), z+height), 
 					new Point3D(x+(vertical?width/2:0), y-(vertical?0:width/2), z+(vertical?height:0))});
-			float pwidth = width/paddingScale, margin = (width/2)-pwidth;
+			float pwidth = width/PADDING_SCALE, margin = (width/2)-pwidth;
 			if (vertical) {
 				padding1 = new Polygon(new Point3D[] {
 						new Point3D(x+pwidth, y+0.01f, z+margin), 
@@ -58,11 +57,8 @@ public class Wall extends EngineObject {
 			System.exit(0);
 		}
 		this.width = width;
+		this.height = height;
 		this.setColor(r, g, b);
-	}
-	
-	public Wall(Point3D center, boolean vertical) {
-		this(center, 0.5f, 1f, vertical);
 	}
 	
 	public float getWidth() {

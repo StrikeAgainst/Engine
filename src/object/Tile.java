@@ -11,8 +11,7 @@ import world.PolygonException;
 
 public class Tile extends EngineObject {
 
-	private static final float SHADE = 0.8f;
-	private final float paddingScale = 2.1f;
+	private static final float SHADE = 0.8f, PADDING_SCALE = 2.1f;
 	private float size;
 	private Polygon main, padding;
 	
@@ -30,20 +29,16 @@ public class Tile extends EngineObject {
 					new Point3D(x-size/2, y-size/2, z), 
 					new Point3D(x-size/2, y+size/2, z)});
 			padding = new Polygon(new Point3D[] {
-					new Point3D(x+size/paddingScale, y+size/paddingScale, z+0.01f), 
-					new Point3D(x+size/paddingScale, y-size/paddingScale, z+0.01f), 
-					new Point3D(x-size/paddingScale, y-size/paddingScale, z+0.01f), 
-					new Point3D(x-size/paddingScale, y+size/paddingScale, z+0.01f)});
+					new Point3D(x+size/PADDING_SCALE, y+size/PADDING_SCALE, z+0.01f),
+					new Point3D(x+size/PADDING_SCALE, y-size/PADDING_SCALE, z+0.01f),
+					new Point3D(x-size/PADDING_SCALE, y-size/PADDING_SCALE, z+0.01f),
+					new Point3D(x-size/PADDING_SCALE, y+size/PADDING_SCALE, z+0.01f)});
 		} catch (PolygonException e) {
 			System.out.println("Could not create Tile: "+e.getMessage());
 			System.exit(0);
 		}
 		this.size = size;
 		this.setColor(r, g, b);
-	}
-	
-	public Tile(Point3D center) {
-		this(center, 0.5f);
 	}
 	
 	public float getSize() {
