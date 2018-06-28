@@ -15,12 +15,13 @@ public class ObjectContainer extends Observable implements Iterable<EngineObject
 	private ObjectContainer() {}
 	
 	public static ObjectContainer get() {
-		if (container == null) container = new ObjectContainer();
+		if (container == null)
+			container = new ObjectContainer();
 		return container;
 	}
 	
 	public void add(EngineObject e) {
-		if (!objects.contains(e) &&(e.getBounding() == null || octree.insertNode(e) != null))
+		if (!objects.contains(e) && (e.getBounding() == null || octree.insertNode(e) != null))
 			objects.add(e);
 	}
 	

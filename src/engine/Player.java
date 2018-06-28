@@ -51,7 +51,7 @@ public class Player implements KeyListener, MouseMotionListener {
 		playerObject.getMomentum().setVX((float)(((cosY*xMove-sinY*yMove)*speedFactor)));
 		playerObject.getMomentum().setVY((float)(((cosY*yMove+sinY*xMove)*speedFactor)));
 		if (!playerObject.isGravitational() || playerObject.getMomentum().getVZ() == 0)
-			playerObject.getMomentum().setVZ(zMove*jumpHeight);
+			playerObject.getMomentum().setVZ(zMove * jumpHeight);
 	}
 
 	public void keyPressed(KeyEvent e) {

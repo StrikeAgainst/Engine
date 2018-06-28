@@ -1,19 +1,19 @@
 package engine;
 
-import world.ObjectBounding;
 import world.Point3D;
+import world.bounding.BoundingProperties;
 
 public abstract class PlayableObject extends PhysicalObject {
 
 	public static float restitution = 0f;
 	public Player player;
 
-	public PlayableObject(Point3D center, ObjectBounding bounding) {
-		super(center, bounding);
+	public PlayableObject(Point3D anchor, BoundingProperties boundingProperties) {
+		super(anchor, boundingProperties);
 	}
 
-	public PlayableObject(Point3D center, ObjectBounding bounding, Player player) {
-		this(center, bounding);
+	public PlayableObject(Point3D anchor, BoundingProperties boundingProperties, Player player) {
+		this(anchor, boundingProperties);
 		setPlayer(player);
 	}
 	
@@ -25,6 +25,11 @@ public abstract class PlayableObject extends PhysicalObject {
 	
 	public Player getPlayer() {
 		return player;
+	}
+
+	public void destroy() {
+		player.setPlayerObject(null);
+		super.destroy();
 	}
 	
 	public abstract float getCamX();

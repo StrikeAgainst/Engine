@@ -4,7 +4,7 @@ import world.Vector3D;
 
 public class Momentum {
 	
-	private static boolean GRAVITY = true;
+	private static boolean GRAVITY_ENABLED = true;
 	protected float vx = 0, vy = 0, vz = 0, vya = 0, vza = 0;
 	
 	public Momentum() {}
@@ -26,11 +26,15 @@ public class Momentum {
 	}
 	
 	public static void toggleGravity() {
-		GRAVITY = !GRAVITY;
+		GRAVITY_ENABLED = !GRAVITY_ENABLED;
+	}
+
+	public static boolean gravityEnabled() {
+		return GRAVITY_ENABLED;
 	}
 		
 	public void update(double tick, boolean gravitational) {
-		if (GRAVITY && gravitational)
+		if (GRAVITY_ENABLED && gravitational)
 			this.vz += (float)(Physics.g*tick);
 	}
 	

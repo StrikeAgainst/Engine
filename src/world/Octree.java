@@ -10,6 +10,8 @@ import engine.Config;
 import engine.EngineObject;
 import engine.PhysicalObject;
 import engine.Collision;
+import world.bounding.AABBProperties;
+import world.bounding.Bounding;
 
 public class Octree {
 
@@ -22,7 +24,7 @@ public class Octree {
 	private Point3D root;
 	private Octree[] octants = null;
 	private ArrayList<EngineObject> nodes = new ArrayList<>();
-	private OctreeBounding bounding;
+	private Bounding bounding;
 	private boolean changed = false;
 	
 	private Octree(Octree parent, Point3D root, int size, int depth) {
@@ -30,7 +32,8 @@ public class Octree {
 		this.root = root;
 		this.size = size;
 		this.depth = depth;
-		this.bounding = new OctreeBounding(root, size);
+		this.bounding = new Bounding(root, new AABBProperties(size, size, size));
+		bounding.getProperties().setColor(0f,1f,0f);
 	}
 	
 	public static Octree get() {
@@ -124,7 +127,7 @@ public class Octree {
 		if (octants != null)
             for (Octree octant : octants)
 				collisions.addAll(octant.detectCollisions(new ArrayList<>(parentNodes)));
-		
+
 		return collisions;
 	}
 	
@@ -133,6 +136,8 @@ public class Octree {
 		Collision collision;
 		
 		for (EngineObject node : nodes) {
+			if (node == pnode)
+				continue;
 			collision = pnode.collides(node);
 			if (collision != null)
 				collisions.add(collision);
@@ -253,7 +258,7 @@ public class Octree {
 		return bounding.encloses(node.getBounding());
 	}
 	
-	public OctreeBounding getBounding() {
+	public Bounding getBounding() {
 		return bounding;
 	}
 	

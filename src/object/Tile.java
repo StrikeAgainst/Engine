@@ -4,7 +4,7 @@ import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
 import engine.EngineObject;
-import world.BoundingBox;
+import world.bounding.AABBProperties;
 import world.Point3D;
 import world.Polygon;
 import world.PolygonException;
@@ -15,13 +15,13 @@ public class Tile extends EngineObject {
 	private float size;
 	private Polygon main, padding;
 	
-	public Tile(Point3D center, float size) {
-		this(center, size, SHADE, SHADE, SHADE);
+	public Tile(Point3D anchor, float size) {
+		this(anchor, size, SHADE, SHADE, SHADE);
 	}
 	
-	public Tile(Point3D center, float size, float r, float g, float b) {
-		super(center, new BoundingBox(center, size/2, size/-2, size/2, size/-2, 0f, -0.01f));
-		float x = center.getX(), y = center.getY(), z = center.getZ();
+	public Tile(Point3D anchor, float size, float r, float g, float b) {
+		super(anchor, new AABBProperties(size/2, size/2, 0.01f));
+		float x = anchor.getX(), y = anchor.getY(), z = anchor.getZ();
 		try {
 			main = new Polygon(new Point3D[] {
 					new Point3D(x+size/2, y+size/2, z), 

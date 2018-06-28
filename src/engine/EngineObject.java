@@ -3,9 +3,9 @@ package engine;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
-import world.BoundingBox;
-import world.ObjectBounding;
 import world.Point3D;
+import world.bounding.Bounding;
+import world.bounding.BoundingProperties;
 
 public abstract class EngineObject {
 
@@ -19,15 +19,16 @@ public abstract class EngineObject {
 	protected boolean highlight = false;
 	protected float ya = 0, za = 60;
 	protected Point3D anchor;
-	protected ObjectBounding bounding;
-	protected BoundingBox broadPhase;
+	protected BoundingProperties boundingProperties;
+	protected Bounding bounding, broadPhase;
 	
-	public EngineObject(Point3D anchor, ObjectBounding bounding) {
+	public EngineObject(Point3D anchor, BoundingProperties boundingProperties) {
 		this.id = EngineObject.ID_INCREMENT++;
 		this.anchor = anchor;
-		this.bounding = bounding;
-		this.broadPhase = bounding.boxify();
-		ObjectContainer.get().add(this);
+        this.boundingProperties = boundingProperties;
+        this.bounding = new Bounding(anchor, boundingProperties);
+        this.broadPhase = getBounding();
+        ObjectContainer.get().add(this);
 	}
 	
 	public static void toggleShowBounding() {
@@ -38,7 +39,7 @@ public abstract class EngineObject {
 	
 	public void drawObject(GL2 gl, GLUT glut) {
 		if (visible)
-			this.draw(gl, glut);
+            this.draw(gl, glut);
 		if (SHOW_BOUNDING && bounding != null)
 			bounding.draw(gl, glut, highlight);
 	}
@@ -94,10 +95,22 @@ public abstract class EngineObject {
 	public void setZAngle(float za) {
 		this.za = za;
 	}
+
+    public BoundingProperties getBoundingProperties() {
+        return boundingProperties;
+    }
 	
-	public ObjectBounding getBounding(){
-		return bounding;
-	}
+	public Bounding getBounding() {
+        return bounding;
+    }
+
+    public Bounding getBroadPhase() {
+        return broadPhase;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
 	
 	public void setVisible() {
 		visible = true;
@@ -122,15 +135,11 @@ public abstract class EngineObject {
 	}
 	
 	public boolean isGravitational() {
-		return gravitational;
+		return Momentum.gravityEnabled() && gravitational;
 	}
 	
 	public void destroy() {
 		ObjectContainer.get().remove(this);
-	}
-	
-	public ObjectBounding getBroadPhase() {
-		return broadPhase;
 	}
 	
 	public int getID() {

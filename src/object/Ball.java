@@ -5,7 +5,7 @@ import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
 import engine.PhysicalObject;
-import world.BoundingSphere;
+import world.bounding.BoundingSphereProperties;
 import world.Point3D;
 
 public class Ball extends PhysicalObject {
@@ -13,7 +13,7 @@ public class Ball extends PhysicalObject {
 	public float radius;
 	
 	public Ball(Point3D anchor, float radius) {
-		super(anchor, new BoundingSphere(anchor, radius));
+		super(anchor, new BoundingSphereProperties(radius));
 		this.radius = radius;
 	}
 	

@@ -11,6 +11,12 @@ public class Vector3D {
 		this.z = z;
 	}
 
+    public Vector3D(Point3D p1, Point3D p2) {
+        this.x = p2.getX() - p1.getX();
+        this.y = p2.getY() - p1.getY();
+        this.z = p2.getZ() - p1.getZ();
+    }
+
 	public Vector3D(Vector3D v) {
 		this.x = v.getX();
 		this.y = v.getY();
@@ -84,6 +90,11 @@ public class Vector3D {
 	public float getEuclideanLength() {
 		return (float) Math.sqrt(x*x+y*y+z*z);
 	}
+
+    public Vector3D unitize() {
+        float scale = 1/getEuclideanLength();
+        return new Vector3D(getX()*scale, getY()*scale, getZ()*scale);
+    }
 	
 	public static boolean colinear(Vector3D v1, Vector3D v2) {
 		return (colinear_scale(v1, v2) != 0);

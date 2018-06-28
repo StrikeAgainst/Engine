@@ -4,7 +4,7 @@ import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
 import engine.EngineObject;
-import world.BoundingBox;
+import world.bounding.AABBProperties;
 import world.Point3D;
 import world.Polygon;
 import world.PolygonException;
@@ -15,42 +15,52 @@ public class Wall extends EngineObject {
 	private float width, height;
 	private Polygon main, padding1, padding2;
 	
-	public Wall(Point3D center, float width, float height, boolean vertical) {
-		this(center, width, height, vertical, SHADE, SHADE, SHADE);
+	public Wall(Point3D anchor, float width, float height, boolean vertical) {
+		this(anchor, width, height, vertical, SHADE, SHADE, SHADE);
 	}
 	
-	public Wall(Point3D center, float width, float height, boolean vertical, float r, float g, float b) {
-		super(center, new BoundingBox(center, (vertical?width/2:0.01f), (vertical?width/-2:-0.01f), (vertical?0.01f:width/2), (vertical?-0.01f:width/-2), height, 0));
-		float x = center.getX(), y = center.getY(), z = center.getZ();
+	public Wall(Point3D anchor, float width, float height, boolean vertical, float r, float g, float b) {
+		super(anchor, new AABBProperties((vertical?width/2:0.01f), (vertical?0.01f:width/2), height/2));
+		float x = anchor.getX(), y = anchor.getY(), z = anchor.getZ();
+        float pwidth = width/PADDING_SCALE, margin = (width/2)-pwidth;
+        float top = z+height/2, bottom = z-height/2;
 		try {
-			main = new Polygon(new Point3D[] {
-					new Point3D(x+(vertical?width/2:0), y+(vertical?0:width/2), z), 
-					new Point3D(x-(vertical?width/2:0), y+(vertical?0:width/2), z+(vertical?0:height)), 
-					new Point3D(x-(vertical?width/2:0), y-(vertical?0:width/2), z+height), 
-					new Point3D(x+(vertical?width/2:0), y-(vertical?0:width/2), z+(vertical?height:0))});
-			float pwidth = width/PADDING_SCALE, margin = (width/2)-pwidth;
 			if (vertical) {
+                main = new Polygon(new Point3D[] {
+                        new Point3D(x+width/2, y, bottom),
+                        new Point3D(x-width/2, y, bottom),
+                        new Point3D(x-width/2, y, top),
+                        new Point3D(x+width/2, y, top)});
+                top -= margin;
+                bottom += margin;
 				padding1 = new Polygon(new Point3D[] {
-						new Point3D(x+pwidth, y+0.01f, z+margin), 
-						new Point3D(x-pwidth, y+0.01f, z+margin), 
-						new Point3D(x-pwidth, y+0.01f, z+height-margin), 
-						new Point3D(x+pwidth, y+0.01f, z+height-margin)});
+						new Point3D(x+pwidth, y+0.01f, bottom),
+						new Point3D(x-pwidth, y+0.01f, bottom),
+						new Point3D(x-pwidth, y+0.01f, top),
+						new Point3D(x+pwidth, y+0.01f, top)});
 				padding2 = new Polygon(new Point3D[] {
-						new Point3D(x+pwidth, y-0.01f, z+margin), 
-						new Point3D(x-pwidth, y-0.01f, z+margin), 
-						new Point3D(x-pwidth, y-0.01f, z+height-margin), 
-						new Point3D(x+pwidth, y-0.01f, z+height-margin)});
+						new Point3D(x+pwidth, y-0.01f, bottom),
+						new Point3D(x-pwidth, y-0.01f, bottom),
+						new Point3D(x-pwidth, y-0.01f, top),
+						new Point3D(x+pwidth, y-0.01f, top)});
 			} else {
+                main = new Polygon(new Point3D[] {
+                        new Point3D(x, y+width/2, bottom),
+                        new Point3D(x, y-width/2, bottom),
+                        new Point3D(x, y-width/2, top),
+                        new Point3D(x, y+width/2, top)});
+                top -= margin;
+                bottom += margin;
 				padding1 = new Polygon(new Point3D[] {
-						new Point3D(x+0.01f, y+pwidth, z+margin), 
-						new Point3D(x+0.01f, y-pwidth, z+margin), 
-						new Point3D(x+0.01f, y-pwidth, z+height-margin), 
-						new Point3D(x+0.01f, y+pwidth, z+height-margin)});
+						new Point3D(x+0.01f, y+pwidth, bottom),
+						new Point3D(x+0.01f, y-pwidth, bottom),
+						new Point3D(x+0.01f, y-pwidth, top),
+						new Point3D(x+0.01f, y+pwidth, top)});
 				padding2 = new Polygon(new Point3D[] {
-						new Point3D(x-0.01f, y+pwidth, z+margin), 
-						new Point3D(x-0.01f, y-pwidth, z+margin), 
-						new Point3D(x-0.01f, y-pwidth, z+height-margin), 
-						new Point3D(x-0.01f, y+pwidth, z+height-margin)});
+						new Point3D(x-0.01f, y+pwidth, bottom),
+						new Point3D(x-0.01f, y-pwidth, bottom),
+						new Point3D(x-0.01f, y-pwidth, top),
+						new Point3D(x-0.01f, y+pwidth, top)});
 			}
 		} catch (PolygonException e) {
 			System.out.println("Could not create Wall: "+e.getMessage());

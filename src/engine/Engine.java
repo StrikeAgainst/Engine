@@ -94,8 +94,11 @@ public class Engine extends JFrame {
 			glu = new GLU();
 			glut = new GLUT();
 			cm = CamMode.FP;
-			initMaze(boardSize);
-            player = new Player(new Pawn(new Point3D(Config.INIT_PLAYER_POS),0.4f,0.1f));
+			player = new Player(new Pawn(new Point3D(Config.INIT_PLAYER_POS),0.4f,0.1f));
+			new Tile(new Point3D(0.25f, 0.25f, 0.0f), panelSize, 0, 0, 0.5f);
+			new Wall(new Point3D(0, 0.25f, 0.4f), panelSize, 0.8f, false);
+			new Wall(new Point3D(0.25f, 0, 0.4f), panelSize, 0.8f, true);
+			//initMaze(boardSize);
             this.addKeyListener(this);
             this.addKeyListener(player);
             this.addMouseMotionListener(player);
@@ -198,8 +201,9 @@ public class Engine extends JFrame {
 						((PhysicalObject)e).move();
 					}
 				}
+				System.out.println(container.size());
 			}
-			
+
 			float center = boardSize*panelSize/2;
 			gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT, new float[] {0.2f, 0.2f, 0.2f, 0.2f}, 0);
 			gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, new float[] {0.3f, 0.3f, 0.3f, 0.3f}, 0);
@@ -259,7 +263,7 @@ public class Engine extends JFrame {
 					break;
 				}
 				case KeyEvent.VK_G: {
-					Momentum.toggleGravity();
+					player.getPlayerObject().toggleGravitational();
 					break;
 				}
 				case KeyEvent.VK_B: {
@@ -296,13 +300,13 @@ public class Engine extends JFrame {
 						new Tile(new Point3D(x+half, y+half, 0.0f), panelSize);
 					
 					if (m.getNorth()[j+1][i+1] && (i == 0 || !m.getSouth()[j+1][i]))
-						new Wall(new Point3D(x, y+half, 0.0f), panelSize, wallHeight, false);
+						new Wall(new Point3D(x, y+half, wallHeight/2), panelSize, wallHeight, false);
 					if (m.getSouth()[j+1][i+1])
-						new Wall(new Point3D(x+panelSize, y+half, 0.0f), panelSize, wallHeight, false);
+						new Wall(new Point3D(x+panelSize, y+half, wallHeight/2), panelSize, wallHeight, false);
 					if (m.getWest()[j+1][i+1] && (j == 0 || !m.getEast()[j][i+1]))
-						new Wall(new Point3D(x+half, y, 0.0f), panelSize, wallHeight, true);
+						new Wall(new Point3D(x+half, y, wallHeight/2), panelSize, wallHeight, true);
 					if (m.getEast()[j+1][i+1])
-						new Wall(new Point3D(x+half, y+panelSize, 0.0f), panelSize, wallHeight, true);
+						new Wall(new Point3D(x+half, y+panelSize, wallHeight/2), panelSize, wallHeight, true);
 				}
 			}
 		}

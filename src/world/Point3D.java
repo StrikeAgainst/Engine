@@ -16,6 +16,18 @@ public class Point3D {
 		this.y = p.getY();
 		this.z = p.getZ();
 	}
+
+	public Point3D(Point3D p, float x, float y, float z) {
+		this.x = p.getX()+x;
+		this.y = p.getY()+y;
+		this.z = p.getZ()+z;
+	}
+
+	public Point3D(Point3D p, Vector3D v) {
+		this.x = p.getX()+v.getX();
+		this.y = p.getY()+v.getY();
+		this.z = p.getZ()+v.getZ();
+	}
 	
 	public float getX() {
 		return x;

@@ -1,9 +1,9 @@
 package engine;
 
-import world.BoundingBox;
-import world.ObjectBounding;
 import world.Point3D;
 import world.Vector3D;
+import world.bounding.Bounding;
+import world.bounding.BoundingProperties;
 
 public abstract class PhysicalObject extends EngineObject {
 
@@ -11,13 +11,14 @@ public abstract class PhysicalObject extends EngineObject {
 	public static float restitution = 0.4f;
 	protected float mass = 0f;
 	protected Vector3D nextMovement;
+	protected Bounding nextBounding;
 	
-	public PhysicalObject(Point3D anchor, ObjectBounding bounding) {
-		this(anchor, bounding, true);		
+	public PhysicalObject(Point3D anchor, BoundingProperties boundingProperties) {
+		this(anchor, boundingProperties, true);
 	}
 	
-	public PhysicalObject(Point3D center, ObjectBounding bounding, boolean gravitational) {
-		super(center, bounding);
+	public PhysicalObject(Point3D anchor, BoundingProperties boundingProperties, boolean gravitational) {
+		super(anchor, boundingProperties);
 		this.gravitational = gravitational;
 		this.momentum = new Momentum();
 	}
@@ -25,40 +26,16 @@ public abstract class PhysicalObject extends EngineObject {
 	public void update(double tick) {
 		super.update(tick);
 		momentum.update(tick, gravitational);
+
+        this.bounding = new Bounding(anchor, boundingProperties);
 		
 		nextMovement = new Vector3D((float) (momentum.getVX()*tick), (float) (momentum.getVY()*tick), (float) (momentum.getVZ()*tick));
-		
-		if (nextMovement.equals(Vector3D.NULL_VECTOR)) 
-			broadPhase = bounding.boxify();
+
+		if (nextMovement.equals(Vector3D.NULL_VECTOR))
+			broadPhase = bounding;
 		else {
-			ObjectBounding nextBounding = bounding.clone();
-			nextBounding.getAnchor().move(nextMovement);
-			
-			float mx = nextMovement.getX(), my = nextMovement.getY(), mz = nextMovement.getZ();
-			float broadFront, broadBack, broadLeft, broadRight, broadTop, broadBottom;
-			if (mx > 0) {
-				broadFront = nextBounding.getFrontBound(true);
-				broadBack = bounding.getBackBound(true);
-			} else {
-				broadFront = bounding.getFrontBound(true);
-				broadBack = nextBounding.getBackBound(true);
-			}
-			if (my > 0) {
-				broadLeft = nextBounding.getLeftBound(true);
-				broadRight = bounding.getRightBound(true);
-			} else {
-				broadLeft = bounding.getLeftBound(true);
-				broadRight = nextBounding.getRightBound(true);
-			}
-			if (mz > 0) {
-				broadTop = nextBounding.getTopBound(true);
-				broadBottom = bounding.getBottomBound(true);
-			} else {
-				broadTop = bounding.getTopBound(true);
-				broadBottom = nextBounding.getBottomBound(true);
-			}
-	
-			broadPhase = new BoundingBox(anchor, broadFront, broadBack, broadLeft, broadRight, broadTop, broadBottom);
+			nextBounding = bounding.clone(new Point3D(anchor, nextMovement));
+			broadPhase = bounding.broadPhaseWith(nextBounding);
 		}
 	}
 	
@@ -75,8 +52,8 @@ public abstract class PhysicalObject extends EngineObject {
 	}
 	
 	public Collision collides(EngineObject object) {
-		if (broadPhase == null || broadPhase.intersects(object.getBroadPhase()) != null) {
-			ObjectBounding otherBounding = object.getBounding();
+		if (broadPhase.intersects(object.getBroadPhase()) != null) {
+			Bounding otherBounding = object.getBounding();
 			Vector3D normal = bounding.intersects(otherBounding);
 			if (normal != null) {
 				this.highlight();
