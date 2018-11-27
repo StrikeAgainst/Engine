@@ -84,4 +84,13 @@ public class OBBProperties extends BoundingProperties {
         //todo: implement
         return 0;
     }
+
+    public String getType() {
+        return "OBB";
+    }
+
+    public String toString() {
+        //todo: implement
+        return "OBBProperties:[x="+x+", y="+y+", z="+z+"]";
+    }
 }

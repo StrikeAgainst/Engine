@@ -131,6 +131,10 @@ public class AABBProperties extends BoundingProperties {
 	public float getZ() {
 		return z;
 	}
+
+	public String getType() {
+		return "AABB";
+	}
 	
 	public String toString() {
 		return "AABBProperties:[x="+x+", y="+y+", z="+z+"]";

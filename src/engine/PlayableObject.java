@@ -14,13 +14,22 @@ public abstract class PlayableObject extends PhysicalObject {
 
 	public PlayableObject(Point3D anchor, BoundingProperties boundingProperties, Player player) {
 		this(anchor, boundingProperties);
-		setPlayer(player);
+		attachPlayer(player);
 	}
 	
-	public void setPlayer(Player player) {
-		this.player = player;
-		if (player.getPlayerObject() != this)
-			player.setPlayerObject(this);
+	public void attachPlayer(Player player) {
+		if (player != null) {
+			this.player = player;
+			if (player.getPlayerObject() != this)
+				player.attachPlayerObject(this);
+		}
+	}
+
+	public void detachPlayer() {
+		Player detached = this.player;
+		this.player = null;
+		if (detached.getPlayerObject() == this)
+			detached.detachPlayerObject();
 	}
 	
 	public Player getPlayer() {
@@ -28,13 +37,13 @@ public abstract class PlayableObject extends PhysicalObject {
 	}
 
 	public void destroy() {
-		player.setPlayerObject(null);
+		player.attachPlayerObject(null);
 		super.destroy();
 	}
 	
-	public abstract float getCamX();
+	public abstract float getCameraX();
 	
-	public abstract float getCamY();
+	public abstract float getCameraY();
 	
-	public abstract float getCamZ();
+	public abstract float getCameraZ();
 }

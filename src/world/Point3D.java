@@ -3,7 +3,10 @@ package world;
 public class Point3D {
 	
 	private float x, y, z;
-	public final static Point3D ROOT = new Point3D(0f,0f,0f);
+
+	public Point3D() {
+		this(0, 0, 0);
+	}
 	
 	public Point3D(float x, float y, float z) {
 		this.x = x;

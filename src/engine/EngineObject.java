@@ -3,6 +3,7 @@ package engine;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
+import engine.collision.Collision;
 import world.Point3D;
 import world.bounding.Bounding;
 import world.bounding.BoundingProperties;
@@ -11,21 +12,20 @@ public abstract class EngineObject {
 
 	public static int ID_INCREMENT = 0;
 	public static boolean SHOW_BOUNDING = false;
-	public static float restitution = 0.2f, friction = 0.4f;
+	public static float friction = 0.4f;
 	
 	protected int id;
 	protected boolean visible = true;
 	protected boolean gravitational = false;
 	protected boolean highlight = false;
+	protected float inverse_mass = 0f;
 	protected float ya = 0, za = 60;
 	protected Point3D anchor;
-	protected BoundingProperties boundingProperties;
 	protected Bounding bounding, broadPhase;
 	
 	public EngineObject(Point3D anchor, BoundingProperties boundingProperties) {
 		this.id = EngineObject.ID_INCREMENT++;
 		this.anchor = anchor;
-        this.boundingProperties = boundingProperties;
         this.bounding = new Bounding(anchor, boundingProperties);
         this.broadPhase = getBounding();
         ObjectContainer.get().add(this);
@@ -34,7 +34,10 @@ public abstract class EngineObject {
 	public static void toggleShowBounding() {
 		EngineObject.SHOW_BOUNDING = !EngineObject.SHOW_BOUNDING;
 	}
-	
+
+
+	// draw
+
 	protected abstract void draw(GL2 gl, GLUT glut);
 	
 	public void drawObject(GL2 gl, GLUT glut) {
@@ -44,10 +47,13 @@ public abstract class EngineObject {
 			bounding.draw(gl, glut, highlight);
 	}
 	
-	public void update(double tick) {
+	public void update(float tick) {
 		highlight = false;
 	}
-	
+
+
+	// getter/setter
+
 	public Point3D getAnchor() {
 		return anchor;
 	}
@@ -95,10 +101,6 @@ public abstract class EngineObject {
 	public void setZAngle(float za) {
 		this.za = za;
 	}
-
-    public BoundingProperties getBoundingProperties() {
-        return boundingProperties;
-    }
 	
 	public Bounding getBounding() {
         return bounding;
@@ -119,7 +121,10 @@ public abstract class EngineObject {
 	public void setInvisible() {
 		visible = false;
 	}
-	
+
+
+	//miscellaneous
+
 	public boolean isMoving() {
 		return false;
 	}
@@ -135,7 +140,7 @@ public abstract class EngineObject {
 	}
 	
 	public boolean isGravitational() {
-		return Momentum.gravityEnabled() && gravitational;
+		return gravitational;
 	}
 	
 	public void destroy() {

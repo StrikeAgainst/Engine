@@ -8,8 +8,8 @@ public class ONB3D {
         if (Vector3D.dot(x, y) != 0)
             throw new ONBException("Vectors x and y are not orthogonal!");
 
-        this.x = x.unitize();
-        this.y = y.unitize();
+        this.x = x.normalize();
+        this.y = y.normalize();
     }
 
     public Vector3D[] getVectors() {

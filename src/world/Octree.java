@@ -9,7 +9,7 @@ import com.jogamp.opengl.util.gl2.GLUT;
 import engine.Config;
 import engine.EngineObject;
 import engine.PhysicalObject;
-import engine.Collision;
+import engine.collision.Collision;
 import world.bounding.AABBProperties;
 import world.bounding.Bounding;
 

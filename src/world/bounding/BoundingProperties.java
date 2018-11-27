@@ -7,6 +7,10 @@ import world.Vector3D;
 
 public abstract class BoundingProperties {
 
+    // front > x > back
+    // left > y > right
+    // top > z > bottom
+
     protected float r = 0f, g = 0f, b = 1f;
 
     public BoundingProperties() {}
@@ -36,4 +40,6 @@ public abstract class BoundingProperties {
     public abstract float getTopBound(Point3D anchor);
 
     public abstract float getBottomBound(Point3D anchor);
+
+    public abstract String getType();
 }

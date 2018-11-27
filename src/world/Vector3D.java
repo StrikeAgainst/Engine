@@ -3,7 +3,10 @@ package world;
 public class Vector3D {
 	
 	private float x, y, z;
-	public final static Vector3D NULL_VECTOR = new Vector3D(0f,0f,0f);
+
+	public Vector3D() {
+		this(0, 0, 0);
+	}
 	
 	public Vector3D(float x, float y, float z) {
 		this.x = x;
@@ -21,6 +24,12 @@ public class Vector3D {
 		this.x = v.getX();
 		this.y = v.getY();
 		this.z = v.getZ();
+	}
+
+	public Vector3D(Vector3D v, float s) {
+		this.x = v.getX()*s;
+		this.y = v.getY()*s;
+		this.z = v.getZ()*s;
 	}
 	
 	public float getX() {
@@ -52,25 +61,69 @@ public class Vector3D {
 		this.y = y;
 		this.z = z;
 	}
+
+	public void add(float x, float y, float z) {
+		this.x += x;
+		this.y += y;
+		this.z += z;
+	}
 	
 	public void add(Vector3D v) {
 		this.x += v.getX();
 		this.y += v.getY();
 		this.z += v.getZ();
 	}
+
+	public void subtract(float x, float y, float z) {
+		this.x -= x;
+		this.y -= y;
+		this.z -= z;
+	}
+
+	public void subtract(Vector3D v) {
+		this.x -= v.getX();
+		this.y -= v.getY();
+		this.z -= v.getZ();
+	}
 	
 	public static Vector3D sum(Vector3D v1, Vector3D v2) {
 		return new Vector3D(v1.getX()+v2.getX(), v1.getY()+v2.getY(), v1.getZ()+v2.getZ());
 	}
+
+	public static Vector3D difference(Vector3D v1, Vector3D v2) {
+		return new Vector3D(v1.getX()-v2.getX(), v1.getY()-v2.getY(), v1.getZ()-v2.getZ());
+	}
 	
-	public void multiply(float s) {
+	public void stretch(float s) {
 		this.x *= s;
 		this.y *= s;
 		this.z *= s;
 	}
+
+	public void shrink(float s) {
+		stretch(1/s);
+	}
 	
 	public static Vector3D product(Vector3D v, float s) {
 		return new Vector3D(v.getX()*s, v.getY()*s, v.getZ()*s);
+	}
+
+	public static Vector3D product(Vector3D v, Matrix3x3 m) {
+		float x = v.getX(), y = v.getY(), z = v.getZ();
+		float[][] mData = m.getData();
+		return new Vector3D(
+				x*mData[0][0] + y*mData[1][0] + z*mData[2][0],
+				x*mData[0][1] + y*mData[1][1] + z*mData[2][1],
+				x*mData[0][2] + y*mData[1][2] + z*mData[2][2]);
+	}
+
+	public static Vector3D product(Vector3D v, Matrix3x4 m) {
+		float x = v.getX(), y = v.getY(), z = v.getZ();
+		float[][] mData = m.getData();
+		return new Vector3D(
+				x*mData[0][0] + y*mData[1][0] + z*mData[2][0] + mData[3][0],
+				x*mData[0][1] + y*mData[1][1] + z*mData[2][1] + mData[3][1],
+				x*mData[0][2] + y*mData[1][2] + z*mData[2][2] + mData[3][2]);
 	}
 	
 	public static float dot(Vector3D v1, Vector3D v2) {
@@ -91,10 +144,20 @@ public class Vector3D {
 		return (float) Math.sqrt(x*x+y*y+z*z);
 	}
 
-    public Vector3D unitize() {
+    public Vector3D normalize() {
         float scale = 1/getEuclideanLength();
         return new Vector3D(getX()*scale, getY()*scale, getZ()*scale);
     }
+
+	public boolean isNull() {
+		return (this.x == 0 && this.y == 0 && this.z == 0);
+	}
+
+    public void nullify() {
+		this.x = 0;
+		this.y = 0;
+		this.z = 0;
+	}
 	
 	public static boolean colinear(Vector3D v1, Vector3D v2) {
 		return (colinear_scale(v1, v2) != 0);

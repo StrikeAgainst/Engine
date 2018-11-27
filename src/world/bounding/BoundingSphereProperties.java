@@ -99,6 +99,10 @@ public class BoundingSphereProperties extends BoundingProperties {
 		return anchor.getZ()-radius;
 	}
 
+	public String getType() {
+		return "Sphere";
+	}
+
 	public String toString() {
 		return "BS:[radius=" + radius + "]";
 	}

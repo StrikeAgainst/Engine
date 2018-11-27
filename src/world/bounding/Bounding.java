@@ -62,6 +62,9 @@ public class Bounding {
 	public BoundingProperties getProperties() {
 		return properties;
 	}
+	public String getType() {
+		return properties.getType();
+	}
 
 	public Bounding broadPhaseWith(Bounding bounding) {
 		float front = Math.max(getFrontBound(), bounding.getFrontBound());

@@ -30,15 +30,15 @@ public class Pawn extends PlayableObject {
         gl.glTranslatef(anchor.getX() * (-1), anchor.getY() * (-1), (anchor.getZ() - (bodyHeight + radius) / 2 + bodyHeight) * (-1));
     }
 
-    public float getCamX() {
+    public float getCameraX() {
         return anchor.getX();
     }
 
-    public float getCamY() {
+    public float getCameraY() {
         return anchor.getY();
     }
 
-    public float getCamZ() {
+    public float getCameraZ() {
         return anchor.getZ();
     }
 }

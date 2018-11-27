@@ -1,6 +1,8 @@
 package engine;
 
+import object.Ball;
 import world.Point3D;
+import world.Vector3D;
 
 import java.awt.AWTException;
 import java.awt.Robot;
@@ -14,8 +16,10 @@ public class Player implements KeyListener, MouseMotionListener {
 	private Robot robot;
 	
 	private static final float SENSITIVITY = 0.15f, speed0 = 1.0f, speedMult = 2, jumpHeight = 1.0f;
-	private double xCenter, yCenter, sinY, cosY;
-	private float xMove = 0, yMove = 0, zMove = 0, speed = speed0;
+	private double mouseXCenter, mouseYCenter;
+	private Point3D position = new Point3D(Config.INIT_PLAYER_POS);
+	private Vector3D velocity = new Vector3D();
+	private float ya = 0, za = 90, xMove = 0, yMove = 0, zMove = 0, speed = speed0;
 	private boolean cameraZLocked = false, controlsOn = true, mouseOn = true, noClip = false;
 	private PlayableObject playerObject;
 	
@@ -30,28 +34,49 @@ public class Player implements KeyListener, MouseMotionListener {
 	
 	public Player(PlayableObject playerObject) {
 		this();
-		setPlayerObject(playerObject);
+		attachPlayerObject(playerObject);
 	}
 	
-	public void setPlayerObject(PlayableObject playerObject) {
-		this.playerObject = playerObject;
-		if (playerObject.getPlayer() != this)
-			playerObject.setPlayer(this);
+	public void attachPlayerObject(PlayableObject playerObject) {
+		if (playerObject != null) {
+			this.playerObject = playerObject;
+			if (playerObject.getPlayer() != this)
+				playerObject.attachPlayer(this);
+		}
+	}
+
+	public void detachPlayerObject() {
+		PlayableObject detached = this.playerObject;
+		this.playerObject = null;
+		if (detached.getPlayer() == this)
+			detached.detachPlayer();
+
+		position = detached.getAnchor();
+		ya = detached.getYAngle();
+		za = detached.getZAngle();
+		velocity.set(0, 0, 0);
 	}
 	
 	public PlayableObject getPlayerObject() {
 		return playerObject;
 	}
 
-	public void control(double tick) {
-		double speedFactor = 1/Math.max(1, Math.sqrt((xMove == 0?0:1)+(yMove == 0?0:1)));
-		double yAngle = Math.toRadians(playerObject.getYAngle());
-		sinY = Math.sin(yAngle);
-		cosY = Math.cos(yAngle);
-		playerObject.getMomentum().setVX((float)(((cosY*xMove-sinY*yMove)*speedFactor)));
-		playerObject.getMomentum().setVY((float)(((cosY*yMove+sinY*xMove)*speedFactor)));
-		if (!playerObject.isGravitational() || playerObject.getMomentum().getVZ() == 0)
-			playerObject.getMomentum().setVZ(zMove * jumpHeight);
+	public void control(float tick) {
+		Vector3D velocity = getVelocity();
+		double speedFactor = 1 / Math.max(1, Math.sqrt((xMove == 0 ? 0 : 1) + (yMove == 0 ? 0 : 1)));
+		double yAngle = Math.toRadians(getYAngle());
+		double sinY = Math.sin(yAngle);
+		double cosY = Math.cos(yAngle);
+
+		velocity.setX((float) (((cosY * xMove - sinY * yMove) * speedFactor)));
+		velocity.setY((float) (((cosY * yMove + sinY * xMove) * speedFactor)));
+		if (!isGravitational() || velocity.getZ() == 0)
+			velocity.setZ(zMove * jumpHeight);
+
+		setVelocity(velocity);
+
+		if (isSpectator())
+			position.move(Vector3D.product(velocity, tick));
 	}
 
 	public void keyPressed(KeyEvent e) {
@@ -73,6 +98,10 @@ public class Player implements KeyListener, MouseMotionListener {
 					yMove = -1;
 					break;
 				}
+				case KeyEvent.VK_R: {
+					reset();
+					break;
+				}
 				case KeyEvent.VK_SPACE: {
 					zMove = 1;
 					break;
@@ -84,6 +113,12 @@ public class Player implements KeyListener, MouseMotionListener {
 				case KeyEvent.VK_SHIFT: {
 					speed = speedMult*speed0;
 					if (xMove > 0) xMove = speed;
+					break;
+				}
+				case KeyEvent.VK_E: {
+					double[] ap = getAngleProperties();
+					Point3D point = new Point3D((float)(getCameraX()+ap[1]*ap[2]), (float)(getCameraY()+ap[1]*ap[0]), (float)(getCameraZ()-ap[3]));
+					(new Ball(point, 0.25f)).setVelocity(getVelocity());
 					break;
 				}
 			}
@@ -129,24 +164,24 @@ public class Player implements KeyListener, MouseMotionListener {
 
 	public void mouseMoved(MouseEvent e) {
 		if (controlsOn && mouseOn) {
-			double xDiff = xCenter-e.getXOnScreen(), yDiff = e.getYOnScreen()-yCenter;
-			double yAngle = playerObject.getYAngle()+xDiff*SENSITIVITY;
-			double zAngle = playerObject.getZAngle()-yDiff*SENSITIVITY;
+			double xDiff = mouseXCenter -e.getXOnScreen(), yDiff = e.getYOnScreen()- mouseYCenter;
+			double yAngle = getYAngle()+xDiff*SENSITIVITY;
+			double zAngle = getZAngle()-yDiff*SENSITIVITY;
 			if (yAngle > 360) yAngle -= 360;
 			else if (yAngle < 0) yAngle += 360;
 			if (zAngle > 180) zAngle = 180;
 			else if (zAngle < 0) zAngle = 0;
-			playerObject.setYAngle((float) yAngle);
-			playerObject.setZAngle((float) zAngle);
+			setYAngle((float) yAngle);
+			setZAngle((float) zAngle);
 			mouseOn = false;
-			robot.mouseMove((int) xCenter, (int) yCenter);
+			robot.mouseMove((int) mouseXCenter, (int) mouseYCenter);
 			mouseOn = true;
 		}
 	}
 	
-	public void setCenter(double xCenter, double yCenter) {
-		this.xCenter = xCenter;
-		this.yCenter = yCenter;
+	public void setMouseCenter(double xCenter, double yCenter) {
+		this.mouseXCenter = xCenter;
+		this.mouseYCenter = yCenter;
 	}
 	
 	public void noClip() {
@@ -154,20 +189,133 @@ public class Player implements KeyListener, MouseMotionListener {
 		} else {
 			
 		}
-		playerObject.toggleGravitational();
+		toggleGravitational();
 		noClip = !noClip;
-	}
-	
-	public void reset() {
-		playerObject.setAnchor(new Point3D(Config.INIT_PLAYER_POS));
-		playerObject.stop();
 	}
 	
 	public boolean isMouseOn() {
 		return mouseOn;
 	}
+
+	public double[] getAngleProperties() {
+		double sinY = Math.sin(Math.toRadians(getYAngle()));
+		double sinZ = Math.sin(Math.toRadians(getZAngle()));
+		double cosY = Math.cos(Math.toRadians(getYAngle()));
+		double cosZ = Math.cos(Math.toRadians(getZAngle()));
+
+		return new double[] {sinY, sinZ, cosY, cosZ};
+	}
 	
 	public boolean isCameraZLocked() {
 		return cameraZLocked;
+	}
+
+	public boolean isSpectator() {
+		return (playerObject == null);
+	}
+
+
+	// playerObject
+
+	public void reset() {
+		if (isSpectator()) {
+			position.moveTo(Config.INIT_PLAYER_POS);
+			velocity.set(0, 0, 0);
+		} else {
+			playerObject.setAnchor(new Point3D(Config.INIT_PLAYER_POS));
+			playerObject.stop();
+		}
+	}
+
+	public float getCameraX() {
+		if (isSpectator())
+			return position.getX();
+		else
+			return playerObject.getCameraX();
+	}
+
+	public float getCameraY() {
+		if (isSpectator())
+			return position.getY();
+		else
+			return playerObject.getCameraY();
+	}
+
+	public float getCameraZ() {
+		if (isSpectator())
+			return position.getZ();
+		else
+			return playerObject.getCameraZ();
+	}
+
+	public void setYAngle(float ya) {
+		if (isSpectator())
+			this.ya = ya;
+		else
+			playerObject.setYAngle(ya);
+	}
+
+	public float getYAngle() {
+		if (isSpectator())
+			return ya;
+		else
+			return playerObject.getYAngle();
+	}
+
+	public void setZAngle(float za) {
+		if (isSpectator())
+			this.za = za;
+		else
+			playerObject.setZAngle(za);
+	}
+
+	public float getZAngle() {
+		if (isSpectator())
+			return za;
+		else
+			return playerObject.getZAngle();
+	}
+
+	public Vector3D getVelocity() {
+		if (isSpectator())
+			return velocity;
+		else
+			return playerObject.getVelocity();
+	}
+
+	public void setVelocity(Vector3D velocity) {
+		if (isSpectator())
+			this.velocity = velocity;
+		else
+			playerObject.setVelocity(velocity);
+	}
+
+	public void setVisible() {
+		if (!isSpectator())
+			playerObject.setVisible();
+	}
+
+	public void setInvisible() {
+		if (!isSpectator())
+			playerObject.setInvisible();
+	}
+
+	public void toggleGravitational() {
+		if (!isSpectator())
+			playerObject.toggleGravitational();
+	}
+
+	public boolean isGravitational() {
+		if (isSpectator())
+			return false;
+		else
+			return playerObject.isGravitational();
+	}
+
+	public String toString() {
+		if (isSpectator())
+			return "Spectator[position="+position.toString()+", ya="+ya+", za="+za+", velocity:"+velocity.toString()+"]";
+		else
+			return playerObject.toString();
 	}
 }
