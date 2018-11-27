@@ -1,0 +1,1925 @@
+@startuml
+
+title __ENGINE's Class Diagram__\n
+
+  package engine {
+    class Config {
+        {static} + OCTREE_MAX_DIMENSION_EXP : int
+        {static} + OCTREE_MAX_DEPTH : int
+        {static} + ROOT : Point3D
+        {static} + INIT_PLAYER_POS : Point3D
+    }
+  }
+  
+
+  package engine {
+    class Engine {
+        {static} - serialVersionUID : long
+        {static} - animator : Animator
+        + Engine()
+        {static} + main()
+    }
+  }
+  
+
+  package engine {
+    class WinRenderer {
+        - gl : GL2
+        - glu : GLU
+        - glut : GLUT
+        - renderer : TextRenderer
+        - blankCursor : Cursor
+        - boardSize : int
+        - panelSize : float
+        - camX : double
+        - camY : double
+        - camZ : double
+        - lookX : double
+        - lookY : double
+        - lookZ : double
+        - distance : double
+        - zRad : double
+        - sinY : double
+        - sinZ : double
+        - cosY : double
+        - cosZ : double
+        - uSinZ : double
+        - uCosZ : double
+        - yAngle : float
+        - zAngle : float
+        - pause : boolean
+        - newTick : long
+        - lastTick : long
+        - random : Random
+        - collisions : ArrayList<Collision>
+        - animator : GLAnimatorControl
+        + WinRenderer()
+        + init()
+        + display()
+        + displayChanged()
+        + reshape()
+        + dispose()
+        + setupCamera()
+        + displayWorld()
+        + keyPressed()
+        + keyReleased()
+        + keyTyped()
+        + initMaze()
+    }
+  }
+  
+
+  package engine {
+    enum CameraMode {
+      FirstPerson
+      ThirdPerson
+      Bird
+    }
+  }
+  
+
+  package engine {
+    enum Scenario {
+      Maze
+      Corner
+      Cyclone
+    }
+  }
+  
+
+  class DisposeGLEventListenerAction {
+      ~ listener : GLEventListener
+      - remove : boolean
+      - DisposeGLEventListenerAction()
+      + run()
+  }
+  
+
+  class AccessibleAWTCanvas {
+      {static} - serialVersionUID : long
+      # AccessibleAWTCanvas()
+      + getAccessibleRole()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  class AWTTreeLock {
+      ~ AWTTreeLock()
+  }
+  
+
+  abstract class AccessibleAWTComponent {
+      {static} - serialVersionUID : long
+      - propertyListenersCount : int
+      # accessibleAWTComponentHandler : ComponentListener
+      # accessibleAWTFocusHandler : FocusListener
+      # AccessibleAWTComponent()
+      + addPropertyChangeListener()
+      + removePropertyChangeListener()
+      + getAccessibleName()
+      + getAccessibleDescription()
+      + getAccessibleRole()
+      + getAccessibleStateSet()
+      + getAccessibleParent()
+      + getAccessibleIndexInParent()
+      + getAccessibleChildrenCount()
+      + getAccessibleChild()
+      + getLocale()
+      + getAccessibleComponent()
+      + getBackground()
+      + setBackground()
+      + getForeground()
+      + setForeground()
+      + getCursor()
+      + setCursor()
+      + getFont()
+      + setFont()
+      + getFontMetrics()
+      + isEnabled()
+      + setEnabled()
+      + isVisible()
+      + setVisible()
+      + isShowing()
+      + contains()
+      + getLocationOnScreen()
+      + getLocation()
+      + setLocation()
+      + getBounds()
+      + setBounds()
+      + getSize()
+      + setSize()
+      + getAccessibleAt()
+      + isFocusTraversable()
+      + requestFocus()
+      + addFocusListener()
+      + removeFocusListener()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  enum BaselineResizeBehavior {
+    CONSTANT_ASCENT
+    CONSTANT_DESCENT
+    CENTER_OFFSET
+    OTHER
+  }
+  
+
+  class BltBufferStrategy {
+      # caps : BufferCapabilities
+      # backBuffers : VolatileImage[]
+      # validatedContents : boolean
+      # width : int
+      # height : int
+      - insets : Insets
+      # BltBufferStrategy()
+      + dispose()
+      # createBackBuffers()
+      + getCapabilities()
+      + getDrawGraphics()
+      ~ getBackBuffer()
+      + show()
+      ~ showSubRegion()
+      # revalidate()
+      ~ revalidate()
+      + contentsLost()
+      + contentsRestored()
+  }
+  
+
+  class BltSubRegionBufferStrategy {
+      # BltSubRegionBufferStrategy()
+      + show()
+      + showIfNotLost()
+  }
+  
+
+  class DummyRequestFocusController {
+      - DummyRequestFocusController()
+      + acceptRequestFocus()
+  }
+  
+
+  class FlipBufferStrategy {
+      # numBuffers : int
+      # caps : BufferCapabilities
+      # drawBuffer : Image
+      # drawVBuffer : VolatileImage
+      # validatedContents : boolean
+      ~ width : int
+      ~ height : int
+      # FlipBufferStrategy()
+      # createBuffers()
+      - updateInternalBuffers()
+      # getBackBuffer()
+      # flip()
+      ~ flipSubRegion()
+      # destroyBuffers()
+      + getCapabilities()
+      + getDrawGraphics()
+      # revalidate()
+      ~ revalidate()
+      + contentsLost()
+      + contentsRestored()
+      + show()
+      ~ showSubRegion()
+      + dispose()
+  }
+  
+
+  class FlipSubRegionBufferStrategy {
+      # FlipSubRegionBufferStrategy()
+      + show()
+      + showIfNotLost()
+  }
+  
+
+  class ProxyCapabilities {
+      - orig : BufferCapabilities
+      - ProxyCapabilities()
+  }
+  
+
+  enum VSyncType {
+    VSYNC_DEFAULT
+    VSYNC_ON
+    VSYNC_OFF
+    id
+  }
+  
+
+  class FlipContents {
+      {static} - I_UNDEFINED : int
+      {static} - I_BACKGROUND : int
+      {static} - I_PRIOR : int
+      {static} - I_COPIED : int
+      {static} - NAMES : String[]
+      {static} + UNDEFINED : FlipContents
+      {static} + BACKGROUND : FlipContents
+      {static} + PRIOR : FlipContents
+      {static} + COPIED : FlipContents
+      - FlipContents()
+  }
+  
+
+  class SingleBufferStrategy {
+      - caps : BufferCapabilities
+      + SingleBufferStrategy()
+      + getCapabilities()
+      + getDrawGraphics()
+      + contentsLost()
+      + contentsRestored()
+      + show()
+  }
+  
+
+  enum WindowClosingMode {
+    DO_NOTHING_ON_CLOSE
+    DISPOSE_ON_CLOSE
+  }
+  
+
+  class Context {
+      - cont : Container
+      - scaleMatX : double
+      - scaleMatY : double
+      - numSamples : int
+      - tileWidth : int
+      - tileHeight : int
+      - count : int
+      - setupAction : ComponentAction
+      - releaseAction : ComponentAction
+      {static} + setupPrint()
+      + releasePrint()
+      + getCount()
+      - Context()
+      - setupPrint()
+  }
+  
+
+  class AccessibleJFrame {
+      # AccessibleJFrame()
+      + getAccessibleName()
+      + getAccessibleStateSet()
+  }
+  
+
+  class AccessibleContainerHandler {
+      # AccessibleContainerHandler()
+      + componentAdded()
+      + componentRemoved()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  class AccessibleAWTFrame {
+      {static} - serialVersionUID : long
+      # AccessibleAWTFrame()
+      + getAccessibleRole()
+      + getAccessibleStateSet()
+  }
+  
+
+  class AccessibleContainerHandler {
+      # AccessibleContainerHandler()
+      + componentAdded()
+      + componentRemoved()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  class AccessibleAWTWindow {
+      {static} - serialVersionUID : long
+      # AccessibleAWTWindow()
+      + getAccessibleRole()
+      + getAccessibleStateSet()
+  }
+  
+
+  class AccessibleContainerHandler {
+      # AccessibleContainerHandler()
+      + componentAdded()
+      + componentRemoved()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  enum Type {
+    NORMAL
+    UTILITY
+    POPUP
+  }
+  
+
+  class WindowDisposerRecord {
+      ~ owner : WeakReference<Window>
+      ~ weakThis : WeakReference<Window>
+      ~ context : WeakReference<AppContext>
+      ~ WindowDisposerRecord()
+      + updateOwner()
+      + dispose()
+  }
+  
+
+  class AccessibleAWTContainer {
+      {static} - serialVersionUID : long
+      - propertyListenersCount : int
+      # accessibleContainerHandler : ContainerListener
+      # AccessibleAWTContainer()
+      + getAccessibleChildrenCount()
+      + getAccessibleChild()
+      + getAccessibleAt()
+      + addPropertyChangeListener()
+      + removePropertyChangeListener()
+  }
+  
+
+  class AccessibleContainerHandler {
+      # AccessibleContainerHandler()
+      + componentAdded()
+      + componentRemoved()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  class DropTargetEventTargetFilter {
+      {static} ~ FILTER : EventTargetFilter
+      - DropTargetEventTargetFilter()
+      + accept()
+  }
+  
+
+  interface EventTargetFilter {
+      {abstract} + accept()
+  }
+  
+
+  class MouseEventTargetFilter {
+      {static} ~ FILTER : EventTargetFilter
+      - MouseEventTargetFilter()
+      + accept()
+  }
+  
+
+  class WakingRunnable {
+      ~ WakingRunnable()
+      + run()
+  }
+  
+
+  class AWTTreeLock {
+      ~ AWTTreeLock()
+  }
+  
+
+  abstract class AccessibleAWTComponent {
+      {static} - serialVersionUID : long
+      - propertyListenersCount : int
+      # accessibleAWTComponentHandler : ComponentListener
+      # accessibleAWTFocusHandler : FocusListener
+      # AccessibleAWTComponent()
+      + addPropertyChangeListener()
+      + removePropertyChangeListener()
+      + getAccessibleName()
+      + getAccessibleDescription()
+      + getAccessibleRole()
+      + getAccessibleStateSet()
+      + getAccessibleParent()
+      + getAccessibleIndexInParent()
+      + getAccessibleChildrenCount()
+      + getAccessibleChild()
+      + getLocale()
+      + getAccessibleComponent()
+      + getBackground()
+      + setBackground()
+      + getForeground()
+      + setForeground()
+      + getCursor()
+      + setCursor()
+      + getFont()
+      + setFont()
+      + getFontMetrics()
+      + isEnabled()
+      + setEnabled()
+      + isVisible()
+      + setVisible()
+      + isShowing()
+      + contains()
+      + getLocationOnScreen()
+      + getLocation()
+      + setLocation()
+      + getBounds()
+      + setBounds()
+      + getSize()
+      + setSize()
+      + getAccessibleAt()
+      + isFocusTraversable()
+      + requestFocus()
+      + addFocusListener()
+      + removeFocusListener()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  enum BaselineResizeBehavior {
+    CONSTANT_ASCENT
+    CONSTANT_DESCENT
+    CENTER_OFFSET
+    OTHER
+  }
+  
+
+  class BltBufferStrategy {
+      # caps : BufferCapabilities
+      # backBuffers : VolatileImage[]
+      # validatedContents : boolean
+      # width : int
+      # height : int
+      - insets : Insets
+      # BltBufferStrategy()
+      + dispose()
+      # createBackBuffers()
+      + getCapabilities()
+      + getDrawGraphics()
+      ~ getBackBuffer()
+      + show()
+      ~ showSubRegion()
+      # revalidate()
+      ~ revalidate()
+      + contentsLost()
+      + contentsRestored()
+  }
+  
+
+  class BltSubRegionBufferStrategy {
+      # BltSubRegionBufferStrategy()
+      + show()
+      + showIfNotLost()
+  }
+  
+
+  class DummyRequestFocusController {
+      - DummyRequestFocusController()
+      + acceptRequestFocus()
+  }
+  
+
+  class FlipBufferStrategy {
+      # numBuffers : int
+      # caps : BufferCapabilities
+      # drawBuffer : Image
+      # drawVBuffer : VolatileImage
+      # validatedContents : boolean
+      ~ width : int
+      ~ height : int
+      # FlipBufferStrategy()
+      # createBuffers()
+      - updateInternalBuffers()
+      # getBackBuffer()
+      # flip()
+      ~ flipSubRegion()
+      # destroyBuffers()
+      + getCapabilities()
+      + getDrawGraphics()
+      # revalidate()
+      ~ revalidate()
+      + contentsLost()
+      + contentsRestored()
+      + show()
+      ~ showSubRegion()
+      + dispose()
+  }
+  
+
+  class FlipSubRegionBufferStrategy {
+      # FlipSubRegionBufferStrategy()
+      + show()
+      + showIfNotLost()
+  }
+  
+
+  class ProxyCapabilities {
+      - orig : BufferCapabilities
+      - ProxyCapabilities()
+  }
+  
+
+  enum VSyncType {
+    VSYNC_DEFAULT
+    VSYNC_ON
+    VSYNC_OFF
+    id
+  }
+  
+
+  class FlipContents {
+      {static} - I_UNDEFINED : int
+      {static} - I_BACKGROUND : int
+      {static} - I_PRIOR : int
+      {static} - I_COPIED : int
+      {static} - NAMES : String[]
+      {static} + UNDEFINED : FlipContents
+      {static} + BACKGROUND : FlipContents
+      {static} + PRIOR : FlipContents
+      {static} + COPIED : FlipContents
+      - FlipContents()
+  }
+  
+
+  class SingleBufferStrategy {
+      - caps : BufferCapabilities
+      + SingleBufferStrategy()
+      + getCapabilities()
+      + getDrawGraphics()
+      + contentsLost()
+      + contentsRestored()
+      + show()
+  }
+  
+
+  package engine {
+    abstract class EngineObject {
+        {static} + ID_INCREMENT : int
+        {static} + SHOW_BOUNDING : boolean
+        {static} + friction : float
+        # id : int
+        # visible : boolean
+        # gravitational : boolean
+        # highlight : boolean
+        # inverse_mass : float
+        # ya : float
+        # za : float
+        + EngineObject()
+        {static} + toggleShowBounding()
+        {abstract} # draw()
+        + drawObject()
+        + update()
+        + getAnchor()
+        + setAnchor()
+        + getX()
+        + setX()
+        + getY()
+        + setY()
+        + getZ()
+        + setZ()
+        + getYAngle()
+        + setYAngle()
+        + getZAngle()
+        + setZAngle()
+        + getBounding()
+        + getBroadPhase()
+        + isVisible()
+        + setVisible()
+        + setInvisible()
+        + isMoving()
+        + highlight()
+        + collides()
+        + isGravitational()
+        + destroy()
+        + getID()
+        + getNameString()
+        + getAttributesString()
+        + toString()
+    }
+  }
+  
+
+  package engine {
+    class Maze {
+        - N : int
+        - north : boolean[][]
+        - south : boolean[][]
+        - west : boolean[][]
+        - east : boolean[][]
+        - visited : boolean[][]
+        - random : Random
+        - Maze()
+        + Maze()
+        {static} + main()
+        {static} + createRandomMaze()
+        - generate()
+        + getSize()
+        + getNorth()
+        + getSouth()
+        + getWest()
+        + getEast()
+        + print()
+    }
+  }
+  
+
+  package engine {
+    class MazePrint {
+        {static} - serialVersionUID : long
+        - scale : int
+        - g : Graphics2D
+        - canvasImage : Image
+        + MazePrint()
+        + paint()
+    }
+  }
+  
+
+  package engine {
+    class ImgCanvas {
+        {static} - serialVersionUID : long
+        + paint()
+    }
+  }
+  
+
+  class AccessibleJPanel {
+      # AccessibleJPanel()
+      + getAccessibleRole()
+  }
+  
+
+  class AccessibleContainerHandler {
+      # AccessibleContainerHandler()
+      + componentAdded()
+      + componentRemoved()
+  }
+  
+
+  class AccessibleFocusHandler {
+      # AccessibleFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  class AccessibleContainerHandler {
+      # AccessibleContainerHandler()
+      + componentAdded()
+      + componentRemoved()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  abstract class AccessibleJComponent {
+      - propertyListenersCount : int
+      # accessibleFocusHandler : FocusListener
+      # AccessibleJComponent()
+      + addPropertyChangeListener()
+      + removePropertyChangeListener()
+      # getBorderTitle()
+      + getAccessibleName()
+      + getAccessibleDescription()
+      + getAccessibleRole()
+      + getAccessibleStateSet()
+      + getAccessibleChildrenCount()
+      + getAccessibleChild()
+      ~ getAccessibleExtendedComponent()
+      + getToolTipText()
+      + getTitledBorderText()
+      + getAccessibleKeyBinding()
+  }
+  
+
+  class AccessibleContainerHandler {
+      # AccessibleContainerHandler()
+      + componentAdded()
+      + componentRemoved()
+  }
+  
+
+  class AccessibleFocusHandler {
+      # AccessibleFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  class AccessibleContainerHandler {
+      # AccessibleContainerHandler()
+      + componentAdded()
+      + componentRemoved()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  class ActionStandin {
+      - actionListener : ActionListener
+      - command : String
+      - action : Action
+      ~ ActionStandin()
+      + getValue()
+      + isEnabled()
+      + actionPerformed()
+      + putValue()
+      + setEnabled()
+      + addPropertyChangeListener()
+      + removePropertyChangeListener()
+  }
+  
+
+  class IntVector {
+      ~ array : int[]
+      ~ count : int
+      ~ capacity : int
+      ~ IntVector()
+      ~ size()
+      ~ elementAt()
+      ~ addElement()
+      ~ setElementAt()
+  }
+  
+
+  class KeyboardState {
+      {static} - keyCodesKey : Object
+      ~ KeyboardState()
+      {static} ~ getKeyCodeArray()
+      {static} ~ registerKeyPressed()
+      {static} ~ registerKeyReleased()
+      {static} ~ keyIsPressed()
+      {static} ~ shouldProcess()
+  }
+  
+
+  class ReadObjectCallback {
+      - roots : Vector<JComponent>
+      - inputStream : ObjectInputStream
+      ~ ReadObjectCallback()
+      + validateObject()
+      - registerComponent()
+  }
+  
+
+  class AccessibleAWTContainer {
+      {static} - serialVersionUID : long
+      - propertyListenersCount : int
+      # accessibleContainerHandler : ContainerListener
+      # AccessibleAWTContainer()
+      + getAccessibleChildrenCount()
+      + getAccessibleChild()
+      + getAccessibleAt()
+      + addPropertyChangeListener()
+      + removePropertyChangeListener()
+  }
+  
+
+  class AccessibleContainerHandler {
+      # AccessibleContainerHandler()
+      + componentAdded()
+      + componentRemoved()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  class DropTargetEventTargetFilter {
+      {static} ~ FILTER : EventTargetFilter
+      - DropTargetEventTargetFilter()
+      + accept()
+  }
+  
+
+  interface EventTargetFilter {
+      {abstract} + accept()
+  }
+  
+
+  class MouseEventTargetFilter {
+      {static} ~ FILTER : EventTargetFilter
+      - MouseEventTargetFilter()
+      + accept()
+  }
+  
+
+  class WakingRunnable {
+      ~ WakingRunnable()
+      + run()
+  }
+  
+
+  class AWTTreeLock {
+      ~ AWTTreeLock()
+  }
+  
+
+  abstract class AccessibleAWTComponent {
+      {static} - serialVersionUID : long
+      - propertyListenersCount : int
+      # accessibleAWTComponentHandler : ComponentListener
+      # accessibleAWTFocusHandler : FocusListener
+      # AccessibleAWTComponent()
+      + addPropertyChangeListener()
+      + removePropertyChangeListener()
+      + getAccessibleName()
+      + getAccessibleDescription()
+      + getAccessibleRole()
+      + getAccessibleStateSet()
+      + getAccessibleParent()
+      + getAccessibleIndexInParent()
+      + getAccessibleChildrenCount()
+      + getAccessibleChild()
+      + getLocale()
+      + getAccessibleComponent()
+      + getBackground()
+      + setBackground()
+      + getForeground()
+      + setForeground()
+      + getCursor()
+      + setCursor()
+      + getFont()
+      + setFont()
+      + getFontMetrics()
+      + isEnabled()
+      + setEnabled()
+      + isVisible()
+      + setVisible()
+      + isShowing()
+      + contains()
+      + getLocationOnScreen()
+      + getLocation()
+      + setLocation()
+      + getBounds()
+      + setBounds()
+      + getSize()
+      + setSize()
+      + getAccessibleAt()
+      + isFocusTraversable()
+      + requestFocus()
+      + addFocusListener()
+      + removeFocusListener()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  enum BaselineResizeBehavior {
+    CONSTANT_ASCENT
+    CONSTANT_DESCENT
+    CENTER_OFFSET
+    OTHER
+  }
+  
+
+  class BltBufferStrategy {
+      # caps : BufferCapabilities
+      # backBuffers : VolatileImage[]
+      # validatedContents : boolean
+      # width : int
+      # height : int
+      - insets : Insets
+      # BltBufferStrategy()
+      + dispose()
+      # createBackBuffers()
+      + getCapabilities()
+      + getDrawGraphics()
+      ~ getBackBuffer()
+      + show()
+      ~ showSubRegion()
+      # revalidate()
+      ~ revalidate()
+      + contentsLost()
+      + contentsRestored()
+  }
+  
+
+  class BltSubRegionBufferStrategy {
+      # BltSubRegionBufferStrategy()
+      + show()
+      + showIfNotLost()
+  }
+  
+
+  class DummyRequestFocusController {
+      - DummyRequestFocusController()
+      + acceptRequestFocus()
+  }
+  
+
+  class FlipBufferStrategy {
+      # numBuffers : int
+      # caps : BufferCapabilities
+      # drawBuffer : Image
+      # drawVBuffer : VolatileImage
+      # validatedContents : boolean
+      ~ width : int
+      ~ height : int
+      # FlipBufferStrategy()
+      # createBuffers()
+      - updateInternalBuffers()
+      # getBackBuffer()
+      # flip()
+      ~ flipSubRegion()
+      # destroyBuffers()
+      + getCapabilities()
+      + getDrawGraphics()
+      # revalidate()
+      ~ revalidate()
+      + contentsLost()
+      + contentsRestored()
+      + show()
+      ~ showSubRegion()
+      + dispose()
+  }
+  
+
+  class FlipSubRegionBufferStrategy {
+      # FlipSubRegionBufferStrategy()
+      + show()
+      + showIfNotLost()
+  }
+  
+
+  class ProxyCapabilities {
+      - orig : BufferCapabilities
+      - ProxyCapabilities()
+  }
+  
+
+  enum VSyncType {
+    VSYNC_DEFAULT
+    VSYNC_ON
+    VSYNC_OFF
+    id
+  }
+  
+
+  class FlipContents {
+      {static} - I_UNDEFINED : int
+      {static} - I_BACKGROUND : int
+      {static} - I_PRIOR : int
+      {static} - I_COPIED : int
+      {static} - NAMES : String[]
+      {static} + UNDEFINED : FlipContents
+      {static} + BACKGROUND : FlipContents
+      {static} + PRIOR : FlipContents
+      {static} + COPIED : FlipContents
+      - FlipContents()
+  }
+  
+
+  class SingleBufferStrategy {
+      - caps : BufferCapabilities
+      + SingleBufferStrategy()
+      + getCapabilities()
+      + getDrawGraphics()
+      + contentsLost()
+      + contentsRestored()
+      + show()
+  }
+  
+
+  class AccessibleJFrame {
+      # AccessibleJFrame()
+      + getAccessibleName()
+      + getAccessibleStateSet()
+  }
+  
+
+  class AccessibleContainerHandler {
+      # AccessibleContainerHandler()
+      + componentAdded()
+      + componentRemoved()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  class AccessibleAWTFrame {
+      {static} - serialVersionUID : long
+      # AccessibleAWTFrame()
+      + getAccessibleRole()
+      + getAccessibleStateSet()
+  }
+  
+
+  class AccessibleContainerHandler {
+      # AccessibleContainerHandler()
+      + componentAdded()
+      + componentRemoved()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  class AccessibleAWTWindow {
+      {static} - serialVersionUID : long
+      # AccessibleAWTWindow()
+      + getAccessibleRole()
+      + getAccessibleStateSet()
+  }
+  
+
+  class AccessibleContainerHandler {
+      # AccessibleContainerHandler()
+      + componentAdded()
+      + componentRemoved()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  enum Type {
+    NORMAL
+    UTILITY
+    POPUP
+  }
+  
+
+  class WindowDisposerRecord {
+      ~ owner : WeakReference<Window>
+      ~ weakThis : WeakReference<Window>
+      ~ context : WeakReference<AppContext>
+      ~ WindowDisposerRecord()
+      + updateOwner()
+      + dispose()
+  }
+  
+
+  class AccessibleAWTContainer {
+      {static} - serialVersionUID : long
+      - propertyListenersCount : int
+      # accessibleContainerHandler : ContainerListener
+      # AccessibleAWTContainer()
+      + getAccessibleChildrenCount()
+      + getAccessibleChild()
+      + getAccessibleAt()
+      + addPropertyChangeListener()
+      + removePropertyChangeListener()
+  }
+  
+
+  class AccessibleContainerHandler {
+      # AccessibleContainerHandler()
+      + componentAdded()
+      + componentRemoved()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  class DropTargetEventTargetFilter {
+      {static} ~ FILTER : EventTargetFilter
+      - DropTargetEventTargetFilter()
+      + accept()
+  }
+  
+
+  interface EventTargetFilter {
+      {abstract} + accept()
+  }
+  
+
+  class MouseEventTargetFilter {
+      {static} ~ FILTER : EventTargetFilter
+      - MouseEventTargetFilter()
+      + accept()
+  }
+  
+
+  class WakingRunnable {
+      ~ WakingRunnable()
+      + run()
+  }
+  
+
+  class AWTTreeLock {
+      ~ AWTTreeLock()
+  }
+  
+
+  abstract class AccessibleAWTComponent {
+      {static} - serialVersionUID : long
+      - propertyListenersCount : int
+      # accessibleAWTComponentHandler : ComponentListener
+      # accessibleAWTFocusHandler : FocusListener
+      # AccessibleAWTComponent()
+      + addPropertyChangeListener()
+      + removePropertyChangeListener()
+      + getAccessibleName()
+      + getAccessibleDescription()
+      + getAccessibleRole()
+      + getAccessibleStateSet()
+      + getAccessibleParent()
+      + getAccessibleIndexInParent()
+      + getAccessibleChildrenCount()
+      + getAccessibleChild()
+      + getLocale()
+      + getAccessibleComponent()
+      + getBackground()
+      + setBackground()
+      + getForeground()
+      + setForeground()
+      + getCursor()
+      + setCursor()
+      + getFont()
+      + setFont()
+      + getFontMetrics()
+      + isEnabled()
+      + setEnabled()
+      + isVisible()
+      + setVisible()
+      + isShowing()
+      + contains()
+      + getLocationOnScreen()
+      + getLocation()
+      + setLocation()
+      + getBounds()
+      + setBounds()
+      + getSize()
+      + setSize()
+      + getAccessibleAt()
+      + isFocusTraversable()
+      + requestFocus()
+      + addFocusListener()
+      + removeFocusListener()
+  }
+  
+
+  class AccessibleAWTComponentHandler {
+      # AccessibleAWTComponentHandler()
+      + componentHidden()
+      + componentShown()
+      + componentMoved()
+      + componentResized()
+  }
+  
+
+  class AccessibleAWTFocusHandler {
+      # AccessibleAWTFocusHandler()
+      + focusGained()
+      + focusLost()
+  }
+  
+
+  enum BaselineResizeBehavior {
+    CONSTANT_ASCENT
+    CONSTANT_DESCENT
+    CENTER_OFFSET
+    OTHER
+  }
+  
+
+  class BltBufferStrategy {
+      # caps : BufferCapabilities
+      # backBuffers : VolatileImage[]
+      # validatedContents : boolean
+      # width : int
+      # height : int
+      - insets : Insets
+      # BltBufferStrategy()
+      + dispose()
+      # createBackBuffers()
+      + getCapabilities()
+      + getDrawGraphics()
+      ~ getBackBuffer()
+      + show()
+      ~ showSubRegion()
+      # revalidate()
+      ~ revalidate()
+      + contentsLost()
+      + contentsRestored()
+  }
+  
+
+  class BltSubRegionBufferStrategy {
+      # BltSubRegionBufferStrategy()
+      + show()
+      + showIfNotLost()
+  }
+  
+
+  class DummyRequestFocusController {
+      - DummyRequestFocusController()
+      + acceptRequestFocus()
+  }
+  
+
+  class FlipBufferStrategy {
+      # numBuffers : int
+      # caps : BufferCapabilities
+      # drawBuffer : Image
+      # drawVBuffer : VolatileImage
+      # validatedContents : boolean
+      ~ width : int
+      ~ height : int
+      # FlipBufferStrategy()
+      # createBuffers()
+      - updateInternalBuffers()
+      # getBackBuffer()
+      # flip()
+      ~ flipSubRegion()
+      # destroyBuffers()
+      + getCapabilities()
+      + getDrawGraphics()
+      # revalidate()
+      ~ revalidate()
+      + contentsLost()
+      + contentsRestored()
+      + show()
+      ~ showSubRegion()
+      + dispose()
+  }
+  
+
+  class FlipSubRegionBufferStrategy {
+      # FlipSubRegionBufferStrategy()
+      + show()
+      + showIfNotLost()
+  }
+  
+
+  class ProxyCapabilities {
+      - orig : BufferCapabilities
+      - ProxyCapabilities()
+  }
+  
+
+  enum VSyncType {
+    VSYNC_DEFAULT
+    VSYNC_ON
+    VSYNC_OFF
+    id
+  }
+  
+
+  class FlipContents {
+      {static} - I_UNDEFINED : int
+      {static} - I_BACKGROUND : int
+      {static} - I_PRIOR : int
+      {static} - I_COPIED : int
+      {static} - NAMES : String[]
+      {static} + UNDEFINED : FlipContents
+      {static} + BACKGROUND : FlipContents
+      {static} + PRIOR : FlipContents
+      {static} + COPIED : FlipContents
+      - FlipContents()
+  }
+  
+
+  class SingleBufferStrategy {
+      - caps : BufferCapabilities
+      + SingleBufferStrategy()
+      + getCapabilities()
+      + getDrawGraphics()
+      + contentsLost()
+      + contentsRestored()
+      + show()
+  }
+  
+
+  package engine {
+    class ObjectContainer {
+        {static} - container : ObjectContainer
+        - objects : ArrayList<EngineObject>
+        - ObjectContainer()
+        {static} + get()
+        + add()
+        + remove()
+        + clear()
+        + contains()
+        + size()
+        + iterator()
+    }
+  }
+  
+
+  package engine {
+    abstract class PhysicalObject {
+        # inverse_mass : float
+        # vya : float
+        # vza : float
+        + PhysicalObject()
+        + PhysicalObject()
+        + update()
+        + toggleGravitational()
+        + collides()
+        + move()
+        + stop()
+        + getMass()
+        + getInverseMass()
+        + getVelocity()
+        + setVelocity()
+        + isStill()
+        + getAttributesString()
+    }
+  }
+  
+
+  package engine {
+    class Physics {
+        {static} + GRAVITY_ENABLED : boolean
+        {static} + DAMPING_ENABLED : boolean
+        {static} + gravity_multiplier : float
+        {static} + g : float
+        {static} + damping : float
+    }
+  }
+  
+
+  package engine {
+    abstract class PlayableObject {
+        {static} + restitution : float
+        + PlayableObject()
+        + PlayableObject()
+        + setPlayer()
+        + getPlayer()
+        + destroy()
+        {abstract} + getCamX()
+        {abstract} + getCamY()
+        {abstract} + getCamZ()
+    }
+  }
+  
+
+  package engine {
+    class Player {
+        - robot : Robot
+        {static} - SENSITIVITY : float
+        {static} - speed0 : float
+        {static} - speedMult : float
+        {static} - jumpHeight : float
+        - xCenter : double
+        - yCenter : double
+        - sinY : double
+        - cosY : double
+        - xMove : float
+        - yMove : float
+        - zMove : float
+        - speed : float
+        - cameraZLocked : boolean
+        - controlsOn : boolean
+        - mouseOn : boolean
+        - noClip : boolean
+        + Player()
+        + Player()
+        + setPlayerObject()
+        + getPlayerObject()
+        + control()
+        + keyPressed()
+        + keyReleased()
+        + keyTyped()
+        + mouseDragged()
+        + mouseMoved()
+        + setCenter()
+        + noClip()
+        + reset()
+        + isMouseOn()
+        + isCameraZLocked()
+    }
+  }
+  
+
+  Engine -up-|> JFrame
+  Engine +-down- WinRenderer
+  Engine +-down- AccessibleJFrame
+  Engine +-down- AccessibleAWTFrame
+  Engine +-down- AccessibleAWTWindow
+  Engine +-down- Type
+  Engine +-down- WindowDisposerRecord
+  Engine +-down- AccessibleAWTContainer
+  Engine +-down- DropTargetEventTargetFilter
+  Engine +-down- EventTargetFilter
+  Engine +-down- MouseEventTargetFilter
+  Engine +-down- WakingRunnable
+  Engine +-down- AWTTreeLock
+  Engine +-down- AccessibleAWTComponent
+  Engine +-down- BaselineResizeBehavior
+  Engine +-down- BltBufferStrategy
+  Engine +-down- BltSubRegionBufferStrategy
+  Engine +-down- DummyRequestFocusController
+  Engine +-down- FlipBufferStrategy
+  Engine +-down- FlipSubRegionBufferStrategy
+  Engine +-down- ProxyCapabilities
+  Engine +-down- SingleBufferStrategy
+  WinRenderer -up-|> GLEventListener
+  WinRenderer -up-|> KeyListener
+  WinRenderer -up-|> GLCanvas
+  WinRenderer o-- CameraMode : perspective
+  WinRenderer o-- Scenario : scenario
+  WinRenderer o-- ObjectContainer : container
+  WinRenderer o-- Octree : octree
+  WinRenderer o-- Player : player
+  WinRenderer +-down- CameraMode
+  WinRenderer +-down- Scenario
+  WinRenderer +-down- DisposeGLEventListenerAction
+  WinRenderer +-down- AccessibleAWTCanvas
+  WinRenderer +-down- AWTTreeLock
+  WinRenderer +-down- AccessibleAWTComponent
+  WinRenderer +-down- BaselineResizeBehavior
+  WinRenderer +-down- BltBufferStrategy
+  WinRenderer +-down- BltSubRegionBufferStrategy
+  WinRenderer +-down- DummyRequestFocusController
+  WinRenderer +-down- FlipBufferStrategy
+  WinRenderer +-down- FlipSubRegionBufferStrategy
+  WinRenderer +-down- ProxyCapabilities
+  WinRenderer +-down- SingleBufferStrategy
+  WinRenderer +-down- WindowClosingMode
+  WinRenderer +-down- Context
+  DisposeGLEventListenerAction -up-|> Runnable
+  AccessibleAWTCanvas -up-|> AccessibleAWTComponent
+  AccessibleAWTCanvas +-down- AccessibleAWTComponentHandler
+  AccessibleAWTCanvas +-down- AccessibleAWTFocusHandler
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  AccessibleAWTComponent -up-|> Serializable
+  AccessibleAWTComponent -up-|> AccessibleComponent
+  AccessibleAWTComponent -up-|> AccessibleContext
+  AccessibleAWTComponent +-down- AccessibleAWTComponentHandler
+  AccessibleAWTComponent +-down- AccessibleAWTFocusHandler
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  BltBufferStrategy -up-|> BufferStrategy
+  BltSubRegionBufferStrategy -up-|> SubRegionShowable
+  BltSubRegionBufferStrategy -up-|> BltBufferStrategy
+  DummyRequestFocusController -up-|> RequestFocusController
+  FlipBufferStrategy -up-|> BufferStrategy
+  FlipSubRegionBufferStrategy -up-|> SubRegionShowable
+  FlipSubRegionBufferStrategy -up-|> FlipBufferStrategy
+  ProxyCapabilities -up-|> ExtendedBufferCapabilities
+  ProxyCapabilities +-down- VSyncType
+  ProxyCapabilities +-down- FlipContents
+  FlipContents -up-|> AttributeValue
+  SingleBufferStrategy -up-|> BufferStrategy
+  AccessibleJFrame -up-|> AccessibleAWTFrame
+  AccessibleJFrame +-down- AccessibleContainerHandler
+  AccessibleJFrame +-down- AccessibleAWTComponentHandler
+  AccessibleJFrame +-down- AccessibleAWTFocusHandler
+  AccessibleContainerHandler -up-|> ContainerListener
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  AccessibleAWTFrame -up-|> AccessibleAWTWindow
+  AccessibleAWTFrame +-down- AccessibleContainerHandler
+  AccessibleAWTFrame +-down- AccessibleAWTComponentHandler
+  AccessibleAWTFrame +-down- AccessibleAWTFocusHandler
+  AccessibleContainerHandler -up-|> ContainerListener
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  AccessibleAWTWindow -up-|> AccessibleAWTContainer
+  AccessibleAWTWindow +-down- AccessibleContainerHandler
+  AccessibleAWTWindow +-down- AccessibleAWTComponentHandler
+  AccessibleAWTWindow +-down- AccessibleAWTFocusHandler
+  AccessibleContainerHandler -up-|> ContainerListener
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  WindowDisposerRecord -up-|> DisposerRecord
+  AccessibleAWTContainer -up-|> AccessibleAWTComponent
+  AccessibleAWTContainer +-down- AccessibleContainerHandler
+  AccessibleAWTContainer +-down- AccessibleAWTComponentHandler
+  AccessibleAWTContainer +-down- AccessibleAWTFocusHandler
+  AccessibleContainerHandler -up-|> ContainerListener
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  DropTargetEventTargetFilter -up-|> EventTargetFilter
+  MouseEventTargetFilter -up-|> EventTargetFilter
+  WakingRunnable -up-|> Runnable
+  AccessibleAWTComponent -up-|> Serializable
+  AccessibleAWTComponent -up-|> AccessibleComponent
+  AccessibleAWTComponent -up-|> AccessibleContext
+  AccessibleAWTComponent +-down- AccessibleAWTComponentHandler
+  AccessibleAWTComponent +-down- AccessibleAWTFocusHandler
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  BltBufferStrategy -up-|> BufferStrategy
+  BltSubRegionBufferStrategy -up-|> SubRegionShowable
+  BltSubRegionBufferStrategy -up-|> BltBufferStrategy
+  DummyRequestFocusController -up-|> RequestFocusController
+  FlipBufferStrategy -up-|> BufferStrategy
+  FlipSubRegionBufferStrategy -up-|> SubRegionShowable
+  FlipSubRegionBufferStrategy -up-|> FlipBufferStrategy
+  ProxyCapabilities -up-|> ExtendedBufferCapabilities
+  ProxyCapabilities +-down- VSyncType
+  ProxyCapabilities +-down- FlipContents
+  FlipContents -up-|> AttributeValue
+  SingleBufferStrategy -up-|> BufferStrategy
+  EngineObject o-- Point3D : anchor
+  EngineObject o-- Bounding : bounding
+  EngineObject o-- Bounding : broadPhase
+  Maze +-down- MazePrint
+  MazePrint -up-|> JFrame
+  MazePrint o-- ImgCanvas : canvas
+  MazePrint +-down- ImgCanvas
+  MazePrint +-down- AccessibleJFrame
+  MazePrint +-down- AccessibleAWTFrame
+  MazePrint +-down- AccessibleAWTWindow
+  MazePrint +-down- Type
+  MazePrint +-down- WindowDisposerRecord
+  MazePrint +-down- AccessibleAWTContainer
+  MazePrint +-down- DropTargetEventTargetFilter
+  MazePrint +-down- EventTargetFilter
+  MazePrint +-down- MouseEventTargetFilter
+  MazePrint +-down- WakingRunnable
+  MazePrint +-down- AWTTreeLock
+  MazePrint +-down- AccessibleAWTComponent
+  MazePrint +-down- BaselineResizeBehavior
+  MazePrint +-down- BltBufferStrategy
+  MazePrint +-down- BltSubRegionBufferStrategy
+  MazePrint +-down- DummyRequestFocusController
+  MazePrint +-down- FlipBufferStrategy
+  MazePrint +-down- FlipSubRegionBufferStrategy
+  MazePrint +-down- ProxyCapabilities
+  MazePrint +-down- SingleBufferStrategy
+  ImgCanvas -up-|> JPanel
+  ImgCanvas +-down- AccessibleJPanel
+  ImgCanvas +-down- AccessibleJComponent
+  ImgCanvas +-down- ActionStandin
+  ImgCanvas +-down- IntVector
+  ImgCanvas +-down- KeyboardState
+  ImgCanvas +-down- ReadObjectCallback
+  ImgCanvas +-down- AccessibleAWTContainer
+  ImgCanvas +-down- DropTargetEventTargetFilter
+  ImgCanvas +-down- EventTargetFilter
+  ImgCanvas +-down- MouseEventTargetFilter
+  ImgCanvas +-down- WakingRunnable
+  ImgCanvas +-down- AWTTreeLock
+  ImgCanvas +-down- AccessibleAWTComponent
+  ImgCanvas +-down- BaselineResizeBehavior
+  ImgCanvas +-down- BltBufferStrategy
+  ImgCanvas +-down- BltSubRegionBufferStrategy
+  ImgCanvas +-down- DummyRequestFocusController
+  ImgCanvas +-down- FlipBufferStrategy
+  ImgCanvas +-down- FlipSubRegionBufferStrategy
+  ImgCanvas +-down- ProxyCapabilities
+  ImgCanvas +-down- SingleBufferStrategy
+  AccessibleJPanel -up-|> AccessibleJComponent
+  AccessibleJPanel +-down- AccessibleContainerHandler
+  AccessibleJPanel +-down- AccessibleFocusHandler
+  AccessibleJPanel +-down- AccessibleContainerHandler
+  AccessibleJPanel +-down- AccessibleAWTComponentHandler
+  AccessibleJPanel +-down- AccessibleAWTFocusHandler
+  AccessibleContainerHandler -up-|> ContainerListener
+  AccessibleFocusHandler -up-|> FocusListener
+  AccessibleContainerHandler -up-|> ContainerListener
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  AccessibleJComponent -up-|> AccessibleExtendedComponent
+  AccessibleJComponent -up-|> AccessibleAWTContainer
+  AccessibleJComponent +-down- AccessibleContainerHandler
+  AccessibleJComponent +-down- AccessibleFocusHandler
+  AccessibleJComponent +-down- AccessibleContainerHandler
+  AccessibleJComponent +-down- AccessibleAWTComponentHandler
+  AccessibleJComponent +-down- AccessibleAWTFocusHandler
+  AccessibleContainerHandler -up-|> ContainerListener
+  AccessibleFocusHandler -up-|> FocusListener
+  AccessibleContainerHandler -up-|> ContainerListener
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  ActionStandin -up-|> Action
+  KeyboardState -up-|> Serializable
+  ReadObjectCallback -up-|> ObjectInputValidation
+  AccessibleAWTContainer -up-|> AccessibleAWTComponent
+  AccessibleAWTContainer +-down- AccessibleContainerHandler
+  AccessibleAWTContainer +-down- AccessibleAWTComponentHandler
+  AccessibleAWTContainer +-down- AccessibleAWTFocusHandler
+  AccessibleContainerHandler -up-|> ContainerListener
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  DropTargetEventTargetFilter -up-|> EventTargetFilter
+  MouseEventTargetFilter -up-|> EventTargetFilter
+  WakingRunnable -up-|> Runnable
+  AccessibleAWTComponent -up-|> Serializable
+  AccessibleAWTComponent -up-|> AccessibleComponent
+  AccessibleAWTComponent -up-|> AccessibleContext
+  AccessibleAWTComponent +-down- AccessibleAWTComponentHandler
+  AccessibleAWTComponent +-down- AccessibleAWTFocusHandler
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  BltBufferStrategy -up-|> BufferStrategy
+  BltSubRegionBufferStrategy -up-|> SubRegionShowable
+  BltSubRegionBufferStrategy -up-|> BltBufferStrategy
+  DummyRequestFocusController -up-|> RequestFocusController
+  FlipBufferStrategy -up-|> BufferStrategy
+  FlipSubRegionBufferStrategy -up-|> SubRegionShowable
+  FlipSubRegionBufferStrategy -up-|> FlipBufferStrategy
+  ProxyCapabilities -up-|> ExtendedBufferCapabilities
+  ProxyCapabilities +-down- VSyncType
+  ProxyCapabilities +-down- FlipContents
+  FlipContents -up-|> AttributeValue
+  SingleBufferStrategy -up-|> BufferStrategy
+  AccessibleJFrame -up-|> AccessibleAWTFrame
+  AccessibleJFrame +-down- AccessibleContainerHandler
+  AccessibleJFrame +-down- AccessibleAWTComponentHandler
+  AccessibleJFrame +-down- AccessibleAWTFocusHandler
+  AccessibleContainerHandler -up-|> ContainerListener
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  AccessibleAWTFrame -up-|> AccessibleAWTWindow
+  AccessibleAWTFrame +-down- AccessibleContainerHandler
+  AccessibleAWTFrame +-down- AccessibleAWTComponentHandler
+  AccessibleAWTFrame +-down- AccessibleAWTFocusHandler
+  AccessibleContainerHandler -up-|> ContainerListener
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  AccessibleAWTWindow -up-|> AccessibleAWTContainer
+  AccessibleAWTWindow +-down- AccessibleContainerHandler
+  AccessibleAWTWindow +-down- AccessibleAWTComponentHandler
+  AccessibleAWTWindow +-down- AccessibleAWTFocusHandler
+  AccessibleContainerHandler -up-|> ContainerListener
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  WindowDisposerRecord -up-|> DisposerRecord
+  AccessibleAWTContainer -up-|> AccessibleAWTComponent
+  AccessibleAWTContainer +-down- AccessibleContainerHandler
+  AccessibleAWTContainer +-down- AccessibleAWTComponentHandler
+  AccessibleAWTContainer +-down- AccessibleAWTFocusHandler
+  AccessibleContainerHandler -up-|> ContainerListener
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  DropTargetEventTargetFilter -up-|> EventTargetFilter
+  MouseEventTargetFilter -up-|> EventTargetFilter
+  WakingRunnable -up-|> Runnable
+  AccessibleAWTComponent -up-|> Serializable
+  AccessibleAWTComponent -up-|> AccessibleComponent
+  AccessibleAWTComponent -up-|> AccessibleContext
+  AccessibleAWTComponent +-down- AccessibleAWTComponentHandler
+  AccessibleAWTComponent +-down- AccessibleAWTFocusHandler
+  AccessibleAWTComponentHandler -up-|> ComponentListener
+  AccessibleAWTFocusHandler -up-|> FocusListener
+  BltBufferStrategy -up-|> BufferStrategy
+  BltSubRegionBufferStrategy -up-|> SubRegionShowable
+  BltSubRegionBufferStrategy -up-|> BltBufferStrategy
+  DummyRequestFocusController -up-|> RequestFocusController
+  FlipBufferStrategy -up-|> BufferStrategy
+  FlipSubRegionBufferStrategy -up-|> SubRegionShowable
+  FlipSubRegionBufferStrategy -up-|> FlipBufferStrategy
+  ProxyCapabilities -up-|> ExtendedBufferCapabilities
+  ProxyCapabilities +-down- VSyncType
+  ProxyCapabilities +-down- FlipContents
+  FlipContents -up-|> AttributeValue
+  SingleBufferStrategy -up-|> BufferStrategy
+  ObjectContainer -up-|> Iterable
+  ObjectContainer -up-|> Observable
+  ObjectContainer o-- Octree : octree
+  PhysicalObject -up-|> EngineObject
+  PhysicalObject o-- Vector3D : velocity
+  PhysicalObject o-- Vector3D : acceleration
+  PhysicalObject o-- Vector3D : nextMovement
+  PhysicalObject o-- Bounding : nextBounding
+  PlayableObject -up-|> PhysicalObject
+  PlayableObject o-- Player : player
+  Player -up-|> KeyListener
+  Player -up-|> MouseMotionListener
+  Player o-- PlayableObject : playerObject
+
+
+right footer
+
+
+PlantUML diagram generated by SketchIt! (https://bitbucket.org/pmesmeur/sketch.it)
+For more information about this tool, please contact philippe.mesmeur@gmail.com
+endfooter
+
+@enduml
