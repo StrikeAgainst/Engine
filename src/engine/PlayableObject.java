@@ -1,19 +1,29 @@
 package engine;
 
-import world.Point3D;
-import world.bounding.BoundingProperties;
+import core.Matrix3x3;
+import core.Point3;
+import core.Quaternion;
 
 public abstract class PlayableObject extends PhysicalObject {
 
-	public static float restitution = 0f;
+	protected static float restitution = 0f;
 	public Player player;
 
-	public PlayableObject(Point3D anchor, BoundingProperties boundingProperties) {
-		super(anchor, boundingProperties);
+	public PlayableObject(Point3 position, Quaternion orientation, float mass) {
+		super(position, orientation, mass);
 	}
 
-	public PlayableObject(Point3D anchor, BoundingProperties boundingProperties, Player player) {
-		this(anchor, boundingProperties);
+	public PlayableObject(Point3 position, Quaternion orientation, float mass, Matrix3x3 inertiaTensor) {
+		super(position, orientation, mass, inertiaTensor);
+	}
+
+	public PlayableObject(Player player, Point3 position, Quaternion orientation, float mass) {
+		this(position, orientation, mass);
+		attachPlayer(player);
+	}
+
+	public PlayableObject(Player player, Point3 position, Quaternion orientation, float mass, Matrix3x3 inertiaTensor) {
+		this(position, orientation, mass, inertiaTensor);
 		attachPlayer(player);
 	}
 	
@@ -40,10 +50,8 @@ public abstract class PlayableObject extends PhysicalObject {
 		player.attachPlayerObject(null);
 		super.destroy();
 	}
-	
-	public abstract float getCameraX();
-	
-	public abstract float getCameraY();
-	
-	public abstract float getCameraZ();
+
+	public Point3 getCameraPosition() {
+		return transformation.getPosition();
+	}
 }

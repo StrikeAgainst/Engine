@@ -1,22 +1,23 @@
 package engine;
 
 import engine.collision.CollisionHandler;
+import engine.force.ForceRegistry;
 
 import java.util.ArrayList;
 
 public class World {
 
-    private ArrayList<RigidBody> bodies;
+    private ArrayList<RigidObject> objects;
     private ForceRegistry forceRegistry = ForceRegistry.get();
     private CollisionHandler collisionHandler;
     private int maxCollisions, iterations;
 
-    public World(ArrayList<RigidBody> bodies, int maxCollisions) {
+    public World(ArrayList<RigidObject> bodies, int maxCollisions) {
         this(bodies, maxCollisions, 0);
     }
 
-    public World(ArrayList<RigidBody> bodies, int maxCollisions, int iterations) {
-        this.bodies = bodies;
+    public World(ArrayList<RigidObject> objects, int maxCollisions, int iterations) {
+        this.objects = objects;
         this.maxCollisions = maxCollisions;
         collisionHandler = new CollisionHandler(iterations);
     }
@@ -26,22 +27,21 @@ public class World {
     }
 
     public void resetAllForces() {
-        for (RigidBody body : bodies) {
-            body.clearForce();
-            body.clearTorque();
+        for (RigidObject o : objects) {
+            o.transformInertiaTensor();
 
-            body.calcTransformation();
-            body.transformInertiaTensor();
+            o.clearForce();
+            o.clearTorque();
         }
     }
 
     public void update(float tick) {
-        for (RigidBody body : bodies)
-            body.update(tick);
+        for (RigidObject o : objects)
+            o.update(tick);
     }
 
-    public ArrayList<RigidBody> getBodies() {
-        return bodies;
+    public ArrayList<RigidObject> getObjects() {
+        return objects;
     }
 
     public void runPhysics(float tick) {

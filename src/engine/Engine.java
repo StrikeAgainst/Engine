@@ -2,88 +2,70 @@ package engine;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
-import engine.collision.Collision;
-import engine.particle.Particle;
-import world.Octree;
+import engine.collision.CollisionContainer;
+import engine.force.ForceRegistry;
+import main.Scenario;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Engine implements KeyListener {
 
-    private Scenario scenario;
+    private static ArrayList<String> renderTextQueue = new ArrayList<>();
 
-    private boolean pause = false;
     private ObjectContainer container = ObjectContainer.get();
-    private ArrayList<Collision> collisions;
-    private Octree octree = Octree.get();
+    private Scenario scenario;
     private Player player;
 
-    public Engine(Scenario scenario) {
+    public Engine(Scenario scenario, Player player) {
         this.scenario = scenario;
-        player = scenario.getPlayer();
+        this.player = player;
     }
 
     public void render(GL2 gl, GLUT glut) {
-        if (scenario.world() == null) {
-            for (EngineObject e : container)
-                e.drawObject(gl, glut);
-            octree.draw(gl, glut);
-        } else
-            for (Particle p : scenario.world().getParticles())
-                p.draw(gl, glut);
+        container.renderAll(gl, glut);
     }
 
-    public void tick(float tick) {
-        if (!pause) {
-            if (scenario.world() == null) {
-                player.control(tick);
-                for (EngineObject e : container) {
-                    e.update(tick);
-                }
+    public static void queueText(String s) {
+        renderTextQueue.add(s);
+    }
 
-                ArrayList<EngineObject> outsiders = octree.update();
-                for (EngineObject outsider : outsiders) {
-                    if (outsider == player.getPlayerObject()) {
-                        player.reset();
-                        octree.insertNode(outsider);
-                    } else
-                        outsider.destroy();
-                }
+    public static void queueText(String[] s) {
+        renderTextQueue.addAll(Arrays.asList(s));
+    }
 
-                collisions = octree.detectCollisions();
-                //for (Collision c : collisions)
-                //	c.resolve();
+    public static void queueText(ArrayList<String> s) {
+        renderTextQueue.addAll(s);
+    }
 
-                for (EngineObject e : container) {
-                    if (e instanceof PhysicalObject) {
-                        ((PhysicalObject) e).move();
-                    }
-                }
-            } else {
-                scenario.world().startFrame();
-                scenario.world().runPhysics(tick);
-            }
-        }
+    public ArrayList<String> renderText() {
+        ArrayList<String> renderText = new ArrayList<>(renderTextQueue);
+        renderTextQueue.clear();
+        return renderText;
+    }
+
+    public void init() {
+        container.updateOctree(true);
+    }
+
+    public void update(float tick) {
+        queueText(CollisionContainer.get().toStringArray());
+        player.update(tick);
+        container.updateAll(tick);
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void reset() {
+        ForceRegistry.get().clear();
+        container.clear();
     }
 
     public void keyPressed(KeyEvent e) {
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_G: {
-                player.toggleGravitational();
-                break;
-            }
-            case KeyEvent.VK_B: {
-                EngineObject.toggleShowBounding();
-                Octree.toggleShowBounding();
-                break;
-            }
-            case KeyEvent.VK_P: {
-                pause = !pause;
-                break;
-            }
-        }
     }
 
     public void keyReleased(KeyEvent e) {}

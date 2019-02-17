@@ -1,102 +1,163 @@
 package engine;
 
+import engine.collision.BroadPhaseContact;
 import engine.collision.Collision;
-import engine.collision.CollisionFactory;
-import engine.collision.CollisionFactoryException;
-import world.Point3D;
-import world.Vector3D;
-import world.bounding.Bounding;
-import world.bounding.BoundingProperties;
+import core.*;
+import engine.collision.PrimitiveContact;
+import engine.collision.bounding.BroadPhase;
+import engine.force.InertiaTensorFactory;
 
-public abstract class PhysicalObject extends EngineObject {
+import java.util.ArrayList;
 
-	protected float inverse_mass = 1f;
-	protected Vector3D velocity = new Vector3D(), acceleration = new Vector3D();
-	protected Vector3D nextMovement;
-	protected Bounding nextBounding;
-	protected float vya = 0, vza = 0;
-	
-	public PhysicalObject(Point3D anchor, BoundingProperties boundingProperties) {
-		this(anchor, boundingProperties, true);
+public abstract class PhysicalObject extends RigidObject {
+
+	protected static float linear_damping = 0.995f, angular_damping = 0.995f;
+	protected static Vector3 gravity = new Vector3(0,0, -9.807f);
+
+	protected Matrix3x3 inverseInertiaTensorLocal, inverseInertiaTensorWorld;
+
+	public PhysicalObject(Point3 position, Quaternion orientation, float mass) {
+		this(position, orientation, mass, InertiaTensorFactory.forDefault(mass));
 	}
-	
-	public PhysicalObject(Point3D anchor, BoundingProperties boundingProperties, boolean gravitational) {
-		super(anchor, boundingProperties);
-		this.gravitational = gravitational;
+
+	public PhysicalObject(Point3 position, Quaternion orientation, float mass, Matrix3x3 inertiaTensor) {
+		super(position, orientation);
+
+		this.inverseMass = 1 / mass;
+		this.inverseInertiaTensorLocal = inertiaTensor.getInverse();
+
+		transformInertiaTensor();
 	}
-	
+
+	public void transformInertiaTensor() {
+		float[][] tData = transformation.getMatrix().getData();
+		float[][] itlData = inverseInertiaTensorLocal.getData();
+
+		float t00 = tData[0][0]*itlData[0][0] + tData[1][0]*itlData[0][1] + tData[2][0]*itlData[0][2];
+		float t10 = tData[0][0]*itlData[1][0] + tData[1][0]*itlData[1][1] + tData[2][0]*itlData[1][2];
+		float t20 = tData[0][0]*itlData[2][0] + tData[1][0]*itlData[2][1] + tData[2][0]*itlData[2][2];
+
+		float t01 = tData[0][1]*itlData[0][0] + tData[1][1]*itlData[0][1] + tData[2][1]*itlData[0][2];
+		float t11 = tData[0][1]*itlData[1][0] + tData[1][1]*itlData[1][1] + tData[2][1]*itlData[1][2];
+		float t21 = tData[0][1]*itlData[2][0] + tData[1][1]*itlData[2][1] + tData[2][1]*itlData[2][2];
+
+		float t02 = tData[0][2]*itlData[0][0] + tData[1][2]*itlData[0][1] + tData[2][2]*itlData[0][2];
+		float t12 = tData[0][2]*itlData[1][0] + tData[1][2]*itlData[1][1] + tData[2][2]*itlData[1][2];
+		float t22 = tData[0][2]*itlData[2][0] + tData[1][2]*itlData[2][1] + tData[2][2]*itlData[2][2];
+
+		inverseInertiaTensorWorld = new Matrix3x3(new float[][] {
+				{
+						t00*tData[0][0] + t10*tData[1][0] + t20*tData[2][0],
+						t01*tData[0][0] + t11*tData[1][0] + t21*tData[2][0],
+						t02*tData[0][0] + t12*tData[1][0] + t22*tData[2][0]
+				},
+				{
+						t00*tData[0][1] + t10*tData[1][1] + t20*tData[2][1],
+						t01*tData[0][1] + t11*tData[1][1] + t21*tData[2][1],
+						t02*tData[0][1] + t12*tData[1][1] + t22*tData[2][1]
+				},
+				{
+						t00*tData[0][2] + t10*tData[1][2] + t20*tData[2][2],
+						t01*tData[0][2] + t11*tData[1][2] + t21*tData[2][2],
+						t02*tData[0][2] + t12*tData[1][2] + t22*tData[2][2]
+				}
+		});
+	}
+
 	public void update(float tick) {
 		super.update(tick);
 
-		if (Physics.GRAVITY_ENABLED && gravitational)
-			velocity.add(Vector3D.product(Physics.g, Physics.gravity_multiplier*tick));
-		if (Physics.DAMPING_ENABLED)
-			velocity.stretch(Physics.damping);
+		Vector3 acc = Vector3.sum(acceleration, totalForce.scaled(inverseMass));
+		velocity.add(acc.scaled(tick));
+		velocity.scale((float) Math.pow(linear_damping, tick));
+		Point3 position = transformation.getPosition().offset(velocity.scaled(tick));
 
-        this.bounding = new Bounding(anchor, bounding.getProperties());
-		
-		nextMovement = Vector3D.product(velocity, tick);
+		Vector3 angular_acc = inverseInertiaTensorWorld.product(totalTorque);
+		rotation.add(angular_acc.scaled(tick));
+		rotation.scale((float) Math.pow(angular_damping, tick));
+		Quaternion orientation = transformation.getOrientation().sum(rotation.scaled(tick));
 
-		if (isStill())
-			broadPhase = bounding;
-		else {
-			nextBounding = bounding.clone(new Point3D(anchor, velocity));
-			broadPhase = bounding.broadPhaseWith(nextBounding);
-		}
+		transformation.set(position, orientation);
+
+		transformInertiaTensor();
+
+		clearForce();
+		clearTorque();
+
+		if (!velocity.isNull() || !rotation.isNull())
+			updateInternals();
 	}
 	
-	public void toggleGravitational() {
-		gravitational = !gravitational;
-	}
-	
-	public Collision collides(EngineObject object) {
-		if (broadPhase.intersects(object.getBroadPhase()) != null) {
-			Bounding otherBounding = object.getBounding();
-			Vector3D normal = bounding.intersects(otherBounding);
-			if (normal != null) {
-				this.highlight();
-				object.highlight();
-				try {
-					return CollisionFactory.createCollision(this, object, 1f);
-				} catch (CollisionFactoryException e) {
-					System.out.println(e.getMessage());
-				}
-			}
-		}
-		return null;
+	public Collision collides(RigidObject object) {
+		if (bounding == null || object.getBounding() == null)
+			return null;
+
+		BroadPhaseContact broadphaseContact = bounding.broadphaseContactWith(object.getBounding());
+		if (broadphaseContact == null)
+			return null;
+
+		ArrayList<PrimitiveContact> contacts = bounding.contactsWith(object.getBounding());
+		return new Collision(this, object, contacts, broadphaseContact);
 	}
 
-	public void move() {
-		anchor.move(nextMovement);
+	public boolean hasRestingContact() {
+		// todo
+		return true;
 	}
 
-	public void stop() {
-		velocity.set(0, 0, 0);
-		this.vya = 0;
-		this.vza = 0;
+	public void applyForce(Vector3 force) {
+		totalForce.add(force);
 	}
 
-	public float getMass() {
-		return 1/inverse_mass;
-	}
-	
-	public float getInverseMass() {
-		return inverse_mass;
+	public void applyForce(Vector3 force, Point3 p) {
+		totalForce.add(force);
+		totalTorque.add(Vector3.cross(force, Vector3.offset(transformation.getPosition(), p)));
 	}
 
-	public Vector3D getVelocity() {
-		return velocity;
+	public void applyForceLocal(Vector3 force, Point3 p) {
+		applyForce(force, transformation.toGlobal(p));
 	}
 
-	public void setVelocity(Vector3D velocity) {
+	public void setVelocity(Vector3 velocity) {
 		this.velocity = velocity;
 	}
 
-	public boolean isStill() {
-		return velocity.isNull();
+	public void setAcceleration(Vector3 acceleration) {
+		this.acceleration = acceleration;
 	}
-	
+
+	public boolean isAccelerating() {
+		return !acceleration.isNull();
+	}
+
+	public void stop() {
+		velocity.nullify();
+		acceleration.nullify();
+		rotation.nullify();
+	}
+
+	public float getMass() {
+		return 1/inverseMass;
+	}
+
+	public float getInverseMass() {
+		return inverseMass;
+	}
+
+	public boolean isGravitated() {
+		return true;
+	}
+
+	public static Vector3 getGravity() {
+		return gravity;
+	}
+
+	public BroadPhase getSweptBroadPhase() {
+		// todo
+		return null;
+	}
+
 	public String getAttributesString() {
-		return "[position="+anchor.toString()+", ya="+ya+", za="+za+", velocity:"+velocity.toString()+", acceleration:"+acceleration.toString()+"]";
+		return super.getAttributesString()+",velocity="+velocity.toString()+",acceleration="+acceleration.toString();
 	}
 }

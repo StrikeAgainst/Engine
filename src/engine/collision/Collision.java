@@ -1,37 +1,74 @@
 package engine.collision;
 
-import engine.EngineObject;
+import engine.RigidObject;
 import engine.PhysicalObject;
-import world.Vector3D;
+import core.Vector3;
+import engine.collision.bounding.BroadPhase;
+import engine.collision.bounding.CollidableBounding;
+import engine.collision.bounding.ObjectBounding;
 
-public abstract class Collision {
+import java.util.ArrayList;
 
-    protected PhysicalObject thisNode;
-    protected EngineObject otherNode;
-    protected Vector3D normal;
-    protected float timeFrame, restitution;
+public class Collision {
 
-    public Collision(PhysicalObject thisNode, EngineObject otherNode, float timeFrame) {
-        this.thisNode = thisNode;
-        this.otherNode = otherNode;
+    protected PhysicalObject object1;
+    protected RigidObject object2;
+    protected ArrayList<PrimitiveContact> contacts;
+    protected BroadPhaseContact broadphaseContact;
+    protected Vector3 normal;
+    protected float timeFrame, friction, restitution;
+
+    public Collision(PhysicalObject object1, RigidObject object2, ArrayList<PrimitiveContact> contacts, BroadPhaseContact broadphaseContact) {
+        this.object1 = object1;
+        this.object2 = object2;
+        this.contacts = contacts;
+        this.broadphaseContact = broadphaseContact;
+    }
+
+    public Collision(PhysicalObject object1, RigidObject object2, float timeFrame) {
+        this.object1 = object1;
+        this.object2 = object2;
         this.timeFrame = timeFrame;
     }
 
-    public PhysicalObject getThisNode() {
-        return thisNode;
+    public boolean involves(RigidObject object) {
+        return (object == object1 || object == object2);
     }
 
-    public EngineObject getOtherNode() {
-        return otherNode;
+    public boolean involves(CollidableBounding bounding) {
+        if (bounding instanceof ObjectBounding)
+            return involves((ObjectBounding) bounding);
+        else if (bounding instanceof BroadPhase)
+            return involves((BroadPhase) bounding);
+
+        return false;
+    }
+
+    public boolean involves(ObjectBounding bounding) {
+        for (PrimitiveContact c : contacts)
+            if (c.involves(bounding))
+                return true;
+
+        return false;
+    }
+
+    public boolean involves(BroadPhase broadphase) {
+        return broadphaseContact.involves(broadphase);
     }
 
     public float getTimeFrame() {
         return timeFrame;
     }
 
-    public abstract boolean resolve();
+    public float calculateSeparatingVelocity() {
+        return 0;
+    }
+
+    public void resolve() {
+
+    }
 
     public String toString() {
-        return "Collision:[" + thisNode.toString() + ", " + otherNode.toString() + "]";
+        return "Collision:[" + object1.getNameIDString() + " - " + object2.getNameIDString() + ": "+contacts.toString()+"]";
     }
 }

@@ -32,8 +32,8 @@ title __ENGINE's Class Diagram__\n
   }
   
 
-  package world {
-    package world.bounding {
+  package core {
+    package engine.collision.bounding_old {
       class AABBProperties {
       }
     }
@@ -56,24 +56,24 @@ title __ENGINE's Class Diagram__\n
   }
   
 
-  package world {
-    package world.bounding {
+  package core {
+    package engine.collision.bounding_old {
       class Bounding {
       }
     }
   }
   
 
-  package world {
-    package world.bounding {
+  package core {
+    package engine.collision.bounding_old {
       abstract class BoundingProperties {
       }
     }
   }
   
 
-  package world {
-    package world.bounding {
+  package core {
+    package engine.collision.bounding_old {
       class BoundingSphereProperties {
       }
     }
@@ -166,8 +166,8 @@ title __ENGINE's Class Diagram__\n
   }
   
 
-  package world {
-    package world.bounding {
+  package core {
+    package engine.collision.bounding_old {
       class OBBProperties {
       }
     }
@@ -184,13 +184,13 @@ title __ENGINE's Class Diagram__\n
   }
   
 
-  package world {
+  package core {
     class ONB3D {
     }
   }
   
 
-  package world {
+  package core {
     class ONBException {
     }
   }
@@ -202,7 +202,7 @@ title __ENGINE's Class Diagram__\n
   }
   
 
-  package world {
+  package core {
     class Octree {
     }
   }
@@ -332,19 +332,19 @@ title __ENGINE's Class Diagram__\n
   }
   
 
-  package world {
+  package core {
     class Point3D {
     }
   }
   
 
-  package world {
+  package core {
     class Polygon {
     }
   }
   
 
-  package world {
+  package core {
     class PolygonException {
     }
   }
@@ -396,7 +396,7 @@ title __ENGINE's Class Diagram__\n
   }
   
 
-  package world {
+  package core {
     class Vector3D {
     }
   }
@@ -414,14 +414,14 @@ title __ENGINE's Class Diagram__\n
   AABBProperties -up-|> BoundingProperties
   AABBSphereCollision -up-|> AABBCollision
   Ball -up-|> PhysicalObject
-  Bounding o-- Point3D : anchor
+  Bounding o-- Point3D : position
   Bounding o-- BoundingProperties : properties
   BoundingSphereProperties -up-|> BoundingProperties
   Collision o-- PhysicalObject : thisNode
   Collision o-- EngineObject : otherNode
   Collision o-- Vector3D : normal
   Engine -up-|> JFrame
-  EngineObject o-- Point3D : anchor
+  EngineObject o-- Point3D : position
   EngineObject o-- Bounding : bounding
   EngineObject o-- Bounding : broadPhase
   OBBAABBCollision -up-|> OBBCollision

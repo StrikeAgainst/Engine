@@ -5,23 +5,24 @@ import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
 import engine.PhysicalObject;
-import world.bounding.BoundingSphereProperties;
-import world.Point3D;
+import engine.force.InertiaTensorFactory;
+import core.Quaternion;
+import core.Point3;
 
 public class Ball extends PhysicalObject {
 	
 	public float radius;
 	
-	public Ball(Point3D anchor, float radius) {
-		super(anchor, new BoundingSphereProperties(radius));
+	public Ball(Point3 position, float radius, float mass) {
+		super(position, new Quaternion(), mass, InertiaTensorFactory.forSphere(mass, radius, true));
 		this.radius = radius;
 	}
+
+	public void draw(GL2 gl, GLUT glut) {}
 	
-	public void draw(GL2 gl, GLUT glut) {
-		gl.glTranslatef(anchor.getX(), anchor.getY(), anchor.getZ());
+	public void drawTransformed(GL2 gl, GLUT glut) {
 		gl.glColor3f(1f,0f,0f);
 		gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_FILL);
 		glut.glutSolidSphere(radius, 12, 4);
-		gl.glTranslatef(anchor.getX()*(-1), anchor.getY()*(-1), (anchor.getZ())*(-1));
 	}
 }

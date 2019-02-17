@@ -5,40 +5,42 @@ import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
 import engine.PlayableObject;
-import world.bounding.AABBProperties;
-import world.Point3D;
+import core.Quaternion;
+import core.Point3;
 
 public class Pawn extends PlayableObject {
 
-    private float bodyHeight, radius;
+    private static boolean TEST_DOUBLEHEAD = false;
+    private float height, radius;
 
-    public Pawn(Point3D anchor, float bodyHeight, float radius) {
-        super(anchor, new AABBProperties(radius, radius, (bodyHeight + radius) / 2));
-        this.bodyHeight = bodyHeight;
+    public Pawn(Point3 position, float yaw, float height, float radius) {
+        super(position, Quaternion.fromYaw(yaw), 2);
+        this.height = height;
         this.radius = radius;
     }
 
-    public void draw(GL2 gl, GLUT glut) {
-        gl.glTranslatef(anchor.getX(), anchor.getY(), anchor.getZ() - (bodyHeight + radius) / 2);
-        gl.glRotatef(ya, 0.0f, 0.0f, 1.0f);
-        gl.glColor3f(0f, 0.6f, 0f);
+    public void draw(GL2 gl, GLUT glut) {}
+
+    public void drawTransformed(GL2 gl, GLUT glut) {
+        float coneHeight = height - radius;
+
+        gl.glTranslatef(0, 0, height/-2);
+        gl.glColor3f(0f, 0.5f, 0f);
         gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_FILL);
-        glut.glutSolidCone(radius, bodyHeight, 12, 4);
-        gl.glTranslatef(0.0f, 0.0f, bodyHeight);
-        glut.glutSolidSphere(radius, 12, 4);
-        gl.glRotatef(-ya, 0.0f, 0.0f, 1.0f);
-        gl.glTranslatef(anchor.getX() * (-1), anchor.getY() * (-1), (anchor.getZ() - (bodyHeight + radius) / 2 + bodyHeight) * (-1));
-    }
+        glut.glutSolidCone(radius, coneHeight, 12, 4);
+        gl.glTranslatef(0.0f, 0.0f, coneHeight);
 
-    public float getCameraX() {
-        return anchor.getX();
-    }
+        if (TEST_DOUBLEHEAD) {
+            gl.glTranslatef(0.0f, 0.1f, 0.0f);
+            gl.glColor3f(0f, 0f, 0.5f);
+            glut.glutSolidSphere(radius, 12, 4);
+            gl.glTranslatef(0.0f, -0.2f, 0.0f);
+            gl.glColor3f(0.5f, 0f, 0f);
+            glut.glutSolidSphere(radius, 12, 4);
+            gl.glTranslatef(0.0f, 0.1f, 0.0f);
+        } else
+            glut.glutSolidSphere(radius, 12, 4);
 
-    public float getCameraY() {
-        return anchor.getY();
-    }
-
-    public float getCameraZ() {
-        return anchor.getZ();
+        gl.glTranslatef(0, 0, height/2 - coneHeight);
     }
 }
