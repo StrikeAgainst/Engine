@@ -4,21 +4,67 @@ import java.util.Arrays;
 
 public class Matrix3x3 extends Matrix {
 
-    public Matrix3x3() {
-        this(new float[][] {
+    public Matrix3x3(float[][] data) {
+        if (data.length == 3 && data[0].length == 3)
+            this.data = data;
+    }
+
+    public Matrix3x3(Matrix3x3 m) {
+        this.data = m.getData();
+    }
+
+    public static Matrix3x3 getIdentity() {
+        return new Matrix3x3(new float[][] {
                 {1,0,0},
                 {0,1,0},
                 {0,0,1}
         });
     }
 
-    public Matrix3x3(float[][] data) {
-        if (data.length == 3 && data[0].length == 3)
-            this.data = data;
+    public static Matrix3x3 getEmpty() {
+        return new Matrix3x3(new float[][] {
+                {0,0,0},
+                {0,0,0},
+                {0,0,0}
+        });
+    }
+
+    public static Matrix3x3 getSkewSymmetric(Scalar3 s) {
+        float x = s.getX(), y = s.getY(), z = s.getZ();
+        return new Matrix3x3(new float[][] {
+                { 0, z,-y},
+                {-z, 0, x},
+                { y,-x, 0}
+        });
+    }
+
+    public Matrix3x3 sum(Matrix3x3 m) {
+        float[][] mData = m.getData();
+        return new Matrix3x3(new float[][] {
+                {
+                        data[0][0]+mData[0][0],
+                        data[0][1]+mData[0][1],
+                        data[0][2]+mData[0][2]
+                },
+                {
+                        data[1][0]+mData[1][0],
+                        data[1][1]+mData[1][1],
+                        data[1][2]+mData[1][2]
+                },
+                {
+                        data[2][0]+mData[2][0],
+                        data[2][1]+mData[2][1],
+                        data[2][2]+mData[2][2]
+                }
+        });
+    }
+
+    public void add(Matrix3x3 m) {
+        data = sum(m).getData();
     }
 
     public Point3 product(Point3 p) {
-        float[] pData = p.getArray();
+        float[] pData = p.toArray();
         return new Point3(
                 data[0][0]*pData[0]+data[1][0]*pData[1]+data[2][0]*pData[2],
                 data[0][1]*pData[0]+data[1][1]*pData[1]+data[2][1]*pData[2],
@@ -26,7 +72,7 @@ public class Matrix3x3 extends Matrix {
     }
 
     public Vector3 product(Vector3 p) {
-        float[] pData = p.getArray();
+        float[] pData = p.toArray();
         return new Vector3(
                 data[0][0]*pData[0]+data[1][0]*pData[1]+data[2][0]*pData[2],
                 data[0][1]*pData[0]+data[1][1]*pData[1]+data[2][1]*pData[2],
@@ -52,6 +98,10 @@ public class Matrix3x3 extends Matrix {
                     data[0][2]*mData[2][0] + data[1][2]*mData[2][1] + data[2][2]*mData[2][2]
                 }
         });
+    }
+
+    public void multiply(Matrix3x3 m) {
+        data = product(m).getData();
     }
 
     public Matrix3x4 product(Matrix3x4 m) {

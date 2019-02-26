@@ -9,6 +9,10 @@ public class Matrix3x4 extends Matrix {
             this.data = data;
     }
 
+    public Matrix3x4(Matrix3x4 m) {
+        this.data = m.getData();
+    }
+
     public float[][] getHomogenData() {
         float[][] data = new float[4][];
 
@@ -45,7 +49,7 @@ public class Matrix3x4 extends Matrix {
     }
 
     public Point3 product(Point3 p) {
-        float[] pData = p.getArray();
+        float[] pData = p.toArray();
         return new Point3(
                 data[0][0]*pData[0]+data[1][0]*pData[1]+data[2][0]*pData[2]+data[3][0],
                 data[0][1]*pData[0]+data[1][1]*pData[1]+data[2][1]*pData[2]+data[3][1],
@@ -53,7 +57,7 @@ public class Matrix3x4 extends Matrix {
     }
 
     public Point3 productInverse(Point3 p) {
-        float[] pData = p.getArray();
+        float[] pData = p.toArray();
         pData[0] -= data[3][0];
         pData[1] -= data[3][1];
         pData[2] -= data[3][2];
@@ -64,7 +68,7 @@ public class Matrix3x4 extends Matrix {
     }
 
     public Vector3 product(Vector3 v) {
-        float[] vData = v.getArray();
+        float[] vData = v.toArray();
         return new Vector3(
                 data[0][0]*vData[0]+data[1][0]*vData[1]+data[2][0]*vData[2],
                 data[0][1]*vData[0]+data[1][1]*vData[1]+data[2][1]*vData[2],
@@ -72,7 +76,7 @@ public class Matrix3x4 extends Matrix {
     }
 
     public Vector3 productInverse(Vector3 v) {
-        float[] vData = v.getArray();
+        float[] vData = v.toArray();
         return new Vector3(
                 data[0][0]*vData[0]+data[0][1]*vData[1]+data[0][2]*vData[2],
                 data[1][0]*vData[0]+data[1][1]*vData[1]+data[1][2]*vData[2],

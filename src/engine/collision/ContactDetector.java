@@ -1,14 +1,13 @@
 package engine.collision;
 
 import core.*;
-import engine.collision.bounding.BoundingSphere;
-import engine.collision.bounding.BoundingBox;
-import engine.collision.bounding.BroadPhase;
-import engine.collision.bounding.PrimitiveBounding;
+import engine.collision.bounding.*;
+
+import java.util.ArrayList;
 
 public class ContactDetector {
 
-    public static PrimitiveContact BoundingOnBounding(PrimitiveBounding bounding1, PrimitiveBounding bounding2) {
+    public static ArrayList<ContactProperties> BoundingOnBounding(SimpleBounding bounding1, SimpleBounding bounding2) {
         if (bounding1 instanceof BoundingSphere) {
             if (bounding2 instanceof BoundingSphere)
                 return SphereOnSphere((BoundingSphere) bounding1, (BoundingSphere) bounding2);
@@ -21,32 +20,46 @@ public class ContactDetector {
                 return BoxOnBox((BoundingBox) bounding1, (BoundingBox) bounding2);
         }
 
-        return null;
+        return new ArrayList<>();
     }
 
-    public static PrimitiveContact SphereOnSphere(BoundingSphere sphere1, BoundingSphere sphere2) {
+    public static ArrayList<ContactProperties> BoundingOnHalfSpace(SimpleBounding bounding, BoundingHalfSpace halfSpace) {
+        if (bounding instanceof BoundingSphere)
+            return SphereOnHalfSpace((BoundingSphere) bounding, halfSpace);
+        else if (bounding instanceof BoundingBox)
+            return BoxOnHalfSpace((BoundingBox) bounding, halfSpace);
+
+        return new ArrayList<>();
+    }
+
+    public static ArrayList<ContactProperties> SphereOnSphere(BoundingSphere sphere1, BoundingSphere sphere2) {
+        ArrayList<ContactProperties> contacts = new ArrayList<>();
+
         Point3 pos1 = sphere1.getPosition(), pos2 = sphere2.getPosition();
         Vector3 offset = Vector3.offset(pos2, pos1);
         float size = offset.getEuclideanMagnitude();
         float radiusSum = sphere1.getRadius()+sphere2.getRadius();
+        float depth = radiusSum-size;
 
-        if (size < 0 || size > radiusSum)
-            return null;
+        if (depth < 0)
+            return contacts;
 
         Point3 contactPoint = pos1.offset(offset.scaled(0.5f));
         Vector3 normal = offset.scaled(1 / size);
-        float depth = radiusSum-size;
 
-        return new PrimitiveContact(sphere1, sphere2, contactPoint, normal, depth);
+        contacts.add(new ContactProperties(contactPoint, normal, depth));
+        return contacts;
     }
 
-    public static PrimitiveContact SphereOnBox(BoundingSphere sphere, BoundingBox box) {
+    public static ArrayList<ContactProperties> SphereOnBox(BoundingSphere sphere, BoundingBox box) {
+        ArrayList<ContactProperties> contacts = new ArrayList<>();
+
         Point3 spherePos = sphere.getPosition(), spherePosLocal = box.getTransformation().toLocal(spherePos);
         Vector3 halfSize = box.getHalfSize();
         float radius = sphere.getRadius(), sphereX = spherePosLocal.getX(), sphereY = spherePosLocal.getY(), sphereZ = spherePosLocal.getZ();
 
         if (Math.abs(spherePosLocal.getX()) - radius > halfSize.getY() || Math.abs(spherePosLocal.getY()) - radius > halfSize.getX() || Math.abs(spherePosLocal.getZ()) - radius > halfSize.getZ())
-            return null;
+            return contacts;
 
         float closestX, closestY, closestZ;
 
@@ -76,29 +89,32 @@ public class ContactDetector {
         float depth = radius-distance;
 
         if (depth < 0)
-            return null;
+            return contacts;
 
         Point3 contactPoint = box.getTransformation().toGlobal(closestLocal);
         Vector3 normal = Vector3.offset(contactPoint, spherePos);
 
-        return new PrimitiveContact(sphere, box, contactPoint, normal, depth);
+        contacts.add(new ContactProperties(contactPoint, normal, depth));
+        return contacts;
     }
 
-    public static PrimitiveContact BoxOnPoint(BoundingBox box, Point3 point) {
+    public static ArrayList<ContactProperties> BoxOnPoint(BoundingBox box, Point3 point) {
+        ArrayList<ContactProperties> contacts = new ArrayList<>();
+
         Point3 pointLocal = box.getTransformation().toLocal(point);
         Vector3 halfSize = box.getHalfSize();
 
         float xDepth = halfSize.getX() - Math.abs(pointLocal.getX());
         if (xDepth < 0)
-            return null;
+            return contacts;
 
         float yDepth = halfSize.getY() - Math.abs(pointLocal.getY());
         if (yDepth < 0)
-            return null;
+            return contacts;
 
         float zDepth = halfSize.getZ() - Math.abs(pointLocal.getZ());
         if (zDepth < 0)
-            return null;
+            return contacts;
 
         Vector3 normal;
         float depth;
@@ -120,10 +136,13 @@ public class ContactDetector {
         if (revert)
             normal.revert();
 
-        return new PrimitiveContact(box, null, point, normal, depth);
+        contacts.add(new ContactProperties(point, normal, depth));
+        return contacts;
     }
 
-    public static PrimitiveContact BoxOnBox(BoundingBox box1, BoundingBox box2) {
+    public static ArrayList<ContactProperties> BoxOnBox(BoundingBox box1, BoundingBox box2) {
+        ArrayList<ContactProperties> contacts = new ArrayList<>();
+
         Vector3 offset = Vector3.offset(box1.getPosition(), box2.getPosition());
         Vector3[] box1axes = new Vector3[3], box2axes = new Vector3[3];
 
@@ -135,7 +154,7 @@ public class ContactDetector {
             box1axes[i] = new Vector3(box1.getAxis(i));
             depth = boxesDepthOnAxis(box1, box2, box1axes[i], offset);
             if (depth < 0)
-                return null;
+                return contacts;
 
             if (depth < contactDepth) {
                 contactDepth = depth;
@@ -148,7 +167,7 @@ public class ContactDetector {
             box2axes[i] = new Vector3(box2.getAxis(i));
             depth = boxesDepthOnAxis(box1, box2, box2axes[i], offset);
             if (depth < 0)
-                return null;
+                return contacts;
 
             if (depth < contactDepth) {
                 contactDepth = depth;
@@ -164,7 +183,7 @@ public class ContactDetector {
                 Vector3 axis = Vector3.cross(box1axes[i], box2axes[j]);
                 depth = boxesDepthOnAxis(box1, box2, axis, offset);
                 if (depth < 0)
-                    return null;
+                    return contacts;
 
                 if (depth < contactDepth) {
                     contactDepth = depth;
@@ -177,11 +196,11 @@ public class ContactDetector {
 
         Point3 vertex;
         if (contactIndex == -1)
-            return null;
+            return contacts;
         else if (contactIndex == 0) {
             //Engine.queueText("EdgeEdge");
             if (contactAxis1Index == -1 || contactAxis2Index == -1)
-                return null;
+                return contacts;
 
             Vector3 axis1 = box1axes[contactAxis1Index];
             Vector3 axis2 = box2axes[contactAxis2Index];
@@ -190,8 +209,8 @@ public class ContactDetector {
                 contactAxis.revert();
             contactAxis.normalize();
 
-            float[] edgePoint1Array = box1.getHalfSize().getArray();
-            float[] edgePoint2Array = box2.getHalfSize().getArray();
+            float[] edgePoint1Array = box1.getHalfSize().toArray();
+            float[] edgePoint2Array = box2.getHalfSize().toArray();
             for (int i = 0; i < 3; i++) {
                 if (i == contactAxis1Index)
                     edgePoint1Array[i] = 0;
@@ -235,7 +254,7 @@ public class ContactDetector {
                 contactAxis.revert();
 
             BoundingBox other = (betterBoxContactIndex == 1?box2:box1);
-            float[] halfSize = other.getHalfSize().getArray();
+            float[] halfSize = other.getHalfSize().toArray();
             for (int i = 0; i < 3; i++)
                 if (Vector3.dot(new Vector3(other.getAxis(i)), contactAxis) < 0)
                     halfSize[i] = -halfSize[i];
@@ -243,7 +262,8 @@ public class ContactDetector {
             vertex = other.getTransformation().toGlobal(new Point3(halfSize));
         }
 
-        return new PrimitiveContact(box1, box2, vertex, contactAxis, contactDepth);
+        contacts.add(new ContactProperties(vertex, contactAxis, contactDepth));
+        return contacts;
     }
 
     private static float boxesDepthOnAxis(BoundingBox box1, BoundingBox box2, Vector3 axis, Vector3 offset) {
@@ -255,6 +275,40 @@ public class ContactDetector {
         float box2Proj = box2.transformToAxis(axis);
         float distance = Math.abs(Vector3.dot(offset, axis));
         return box1Proj + box2Proj - distance;
+    }
+
+    public static ArrayList<ContactProperties> SphereOnHalfSpace(BoundingSphere sphere, BoundingHalfSpace halfSpace) {
+        ArrayList<ContactProperties> contacts = new ArrayList<>();
+
+        float distance = Vector3.dot(halfSpace.getNormal(), new Vector3(sphere.getPosition())) - sphere.getRadius() - halfSpace.getOffset();
+        if (distance >= 0)
+            return contacts;
+
+        Vector3 perpendicular = halfSpace.getNormal().scaled(distance + sphere.getRadius());
+        Point3 contactPoint = sphere.getPosition().offset(perpendicular.getReverse());
+
+        contacts.add(new ContactProperties(contactPoint, halfSpace.getNormal(), -distance));
+        return contacts;
+    }
+
+    public static ArrayList<ContactProperties> BoxOnHalfSpace(BoundingBox box, BoundingHalfSpace halfSpace) {
+        ArrayList<ContactProperties> contacts = new ArrayList<>();
+
+        float axis = box.transformToAxis(halfSpace.getNormal());
+        float boxDistance = Vector3.dot(halfSpace.getNormal(), new Vector3(box.getPosition())) - axis - halfSpace.getOffset();
+        if (boxDistance >= 0)
+            return contacts;
+
+        for (Point3 vertex : box.getVertices()) {
+            float vertexDistance = Vector3.dot(new Vector3(vertex), halfSpace.getNormal());
+            if (vertexDistance > 0)
+                continue;
+
+            float depth = halfSpace.getOffset()-vertexDistance;
+            Point3 contactPoint = vertex.offset(halfSpace.getNormal().scaled(-depth));
+            contacts.add(new ContactProperties(contactPoint, halfSpace.getNormal(), depth));
+        }
+        return contacts;
     }
 
     public static BroadPhaseContact BroadPhaseOnBroadPhase(BroadPhase bp1, BroadPhase bp2) {

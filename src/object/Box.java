@@ -10,6 +10,8 @@ import core.Point3;
 import core.Quaternion;
 import main.Renderer;
 
+import java.util.Arrays;
+
 public class Box extends PhysicalObject {
 
     public Vector3 size;
@@ -32,13 +34,13 @@ public class Box extends PhysicalObject {
 
     public void drawTransformed(GL2 gl, GLUT glut) {}
 
-    public void setPosition(Point3 position) {
-        super.setPosition(position);
+    public void set(Point3 position, Quaternion orientation) {
+        super.set(position, orientation);
         vertices = null;
     }
 
-    public void setOrientation(Quaternion orientation) {
-        super.setOrientation(orientation);
+    public void updateInternals() {
+        super.updateInternals();
         vertices = null;
     }
 
@@ -61,13 +63,16 @@ public class Box extends PhysicalObject {
     }
 
     public Point3[] getVertexMap() {
-        initVertexMap();
+        if (vertexMap == null)
+            initVertexMap();
         return vertexMap;
     }
 
     public Point3[] getVertices() {
         if (vertices == null) {
-            initVertexMap();
+            if (vertexMap == null)
+                initVertexMap();
+
             vertices = new Point3[8];
             for (int i = 0; i < 8; i++)
                 vertices[i] = transformation.toGlobal(vertexMap[i]);

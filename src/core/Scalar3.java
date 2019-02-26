@@ -62,7 +62,7 @@ public abstract class Scalar3 {
         this.z += v.getZ();
     }
 
-    public float[] getArray() {
+    public float[] toArray() {
         return new float[] {x, y, z};
     }
 

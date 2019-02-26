@@ -26,14 +26,10 @@ public abstract class Matrix {
         return arr;
     }
 
-    public void stretch(float s) {
+    public void scale(float s) {
         for (int i = 0; i < data.length; i++)
             for (int j = 0; j < data[0].length; j++)
                 data[i][j] *= s;
-    }
-
-    public void shrink(float s) {
-        stretch(1/s);
     }
 
     public float[] getColumn(int column) {

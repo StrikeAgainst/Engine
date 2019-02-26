@@ -3,11 +3,13 @@ package engine;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
-import engine.collision.Collision;
 import core.*;
+import engine.collision.Contact;
 import engine.collision.bounding.*;
 
-public abstract class RigidObject {
+import java.util.ArrayList;
+
+public abstract class RigidObject extends Collidable {
 
 	private static int ID_INCREMENT = 0;
 	
@@ -15,9 +17,10 @@ public abstract class RigidObject {
 	protected boolean visible = true;
 	protected static float friction, restitution;
 
-	protected Vector3 velocity = new Vector3(), acceleration = new Vector3(), totalForce = new Vector3(), totalTorque = new Vector3(), rotation = new Vector3();
+	protected Vector3 velocity = new Vector3(), lastVelocity = new Vector3(), acceleration = new Vector3(), lastAcceleration = new Vector3(), rotation = new Vector3(), totalForce = new Vector3(), totalTorque = new Vector3();
 	protected Transformation transformation;
 	protected ObjectBounding bounding = null;
+	protected Material material = null;
 	protected float inverseMass = 0;
 	protected boolean internalsUpdated = false;
 
@@ -74,6 +77,11 @@ public abstract class RigidObject {
 		this.bounding = null;
 		//todo
 	}
+
+	public void set(Point3 p, Quaternion q) {
+		transformation.set(p, q);
+		updateInternals();
+	}
 	
 	public void setPosition(Point3 p) {
         transformation.setPosition(p);
@@ -101,13 +109,35 @@ public abstract class RigidObject {
 		return velocity;
 	}
 
+	public Vector3 getLastVelocity() {
+		return lastVelocity;
+	}
+
 	public void setVelocity(Vector3 velocity) {}
+
+	public Vector3 getPointVelocity(Point3 point) {
+		return Vector3.sum(velocity, Vector3.cross(rotation, Vector3.offset(transformation.getPosition(), point)));
+	}
+
+	public Vector3 getPointVelocityLocal(Point3 point) {
+		return getPointVelocity(transformation.toGlobal(point));
+	}
 
 	public Vector3 getAcceleration() {
 		return acceleration;
 	}
 
+	public Vector3 getLastAcceleration() {
+		return lastAcceleration;
+	}
+
 	public void setAcceleration(Vector3 acceleration) {}
+
+	public Vector3 getRotation() {
+		return rotation;
+	}
+
+	public void setRotation(Vector3 rotation) {}
 
 	public boolean isAccelerating() {
 		return false;
@@ -123,14 +153,18 @@ public abstract class RigidObject {
 		totalTorque.nullify();
 	}
 
-	public float getInverseMass() {
-		return 0;
+	public float getMass() {
+		return Float.POSITIVE_INFINITY;
 	}
 
-	public Collision collides(RigidObject object) {
-		if (object instanceof PhysicalObject)
-			return object.collides(this);
-		return null;
+	public float getInverseMass() {
+		return inverseMass;
+	}
+
+	public ArrayList<Contact> contactsWith(Collidable collidable) {
+		if (collidable instanceof PhysicalObject)
+			return collidable.contactsWith(this);
+		return new ArrayList<>();
 	}
 
 	public boolean isGravitated() {

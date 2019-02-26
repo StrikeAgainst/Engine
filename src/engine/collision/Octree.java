@@ -50,7 +50,7 @@ public class Octree {
 				octant.render(gl,  glut);
 	}
 
-	// update all objects in octree structure
+	// updateDepth all objects in octree structure
 	public ArrayList<RigidObject> update(boolean force) {
 		changed = false;
 		ArrayList<RigidObject> queue = new ArrayList<>();
@@ -101,14 +101,13 @@ public class Octree {
 		return queue;
 	}
 	
-	public ArrayList<Collision> detectCollisions() {
-		return detectCollisions(new ArrayList<>());
+	public ArrayList<Contact> detectContacts() {
+		return detectContacts(new ArrayList<>());
 	}
 
-	// check all collisions inside octree structure
-	public ArrayList<Collision> detectCollisions(ArrayList<RigidObject> parentObjects) {
-		ArrayList<Collision> collisions = new ArrayList<>();
-		Collision collision;
+	// check all contacts inside octree structure
+	public ArrayList<Contact> detectContacts(ArrayList<RigidObject> parentObjects) {
+		ArrayList<Contact> contacts = new ArrayList<>();
 
 		//if (changed) System.out.println(toString());
 
@@ -117,46 +116,39 @@ public class Octree {
 			for (RigidObject obj2 : objects) {
 				if (obj1 == obj2)
 					break; // instead of continue; prevents duplicate checks
-				collision = obj1.collides(obj2);
-				if (collision != null) 
-					collisions.add(collision);
+				contacts.addAll(obj1.contactsWith(obj2));
 			}
 
 		// check if any objects of this node collide with any objects from parent nodes
 		for (RigidObject obj1 : objects)
-			for (RigidObject obj2 : parentObjects) {
-				collision = obj1.collides(obj2);
-				if (collision != null) 
-					collisions.add(collision);
-			}
+			for (RigidObject obj2 : parentObjects)
+				contacts.addAll(obj1.contactsWith(obj2));
 
 		parentObjects.addAll(objects);
 		
 		if (octants != null)
             for (Octree octant : octants)
-				collisions.addAll(octant.detectCollisions(new ArrayList<>(parentObjects)));
+				contacts.addAll(octant.detectContacts(new ArrayList<>(parentObjects)));
 
-		return collisions;
+		return contacts;
 	}
 
 	// check all collisions for a given object inside octree structure
-	public ArrayList<Collision> detectCollisions(PhysicalObject pobj) {
-		ArrayList<Collision> collisions = new ArrayList<>();
-		Collision collision;
+	public ArrayList<Contact> detectContacts(PhysicalObject pobj) {
+		ArrayList<Contact> contacts = new ArrayList<>();
+		Contact contact;
 		
 		for (RigidObject obj : objects) {
 			if (obj == pobj)
 				continue;
-			collision = pobj.collides(obj);
-			if (collision != null)
-				collisions.add(collision);
+			contacts.addAll(pobj.contactsWith(obj));
 		}
 		
 		if (octants != null)
             for (Octree octant : octants)
-				collisions.addAll(octant.detectCollisions(pobj));
+				contacts.addAll(octant.detectContacts(pobj));
 		
-		return collisions;
+		return contacts;
 	}
 	
 	public boolean createOctants() {

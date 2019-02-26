@@ -6,7 +6,7 @@ import com.jogamp.opengl.util.gl2.GLUT;
 import engine.Transformation;
 import engine.RigidObject;
 
-public class BoundingSphere extends PrimitiveBounding {
+public class BoundingSphere extends SimpleBounding {
 
     private float radius;
 

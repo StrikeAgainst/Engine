@@ -4,11 +4,11 @@ import engine.collision.bounding.BroadPhase;
 
 public class BroadPhaseContact extends Contact {
 
-    public BroadPhaseContact(BroadPhase bounding1, BroadPhase bounding2) {
-        super(bounding1, bounding2);
+    public BroadPhaseContact(BroadPhase broadPhase, BroadPhase otherBroadPhase) {
+        super(broadPhase, otherBroadPhase);
     }
 
     public String toString() {
-        return "BroadPhaseContact:[bounding1: "+bounding1.getNameString()+", bounding2: "+bounding2.getNameString()+"]";
+        return "BroadPhaseContact:[broadPhase: "+bounding.getNameString()+", otherBroadPhase: "+otherBounding.getNameString()+"]";
     }
 }

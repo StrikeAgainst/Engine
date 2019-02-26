@@ -4,10 +4,12 @@ import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 import core.Point3;
 import engine.collision.BroadPhaseContact;
+import engine.collision.Contact;
+import engine.collision.ContactContainer;
 import engine.collision.ContactDetector;
 import main.Renderer;
 
-public class BroadPhase extends CollidableBounding {
+public class BroadPhase extends Bounding {
 
     public static boolean VISIBLE = false;
 
@@ -24,7 +26,7 @@ public class BroadPhase extends CollidableBounding {
         this.lowerBound = lowerBound;
     }
 
-    public static BroadPhase combine(BroadPhase bp1, BroadPhase bp2, ObjectBounding bounding) {
+    public static BroadPhase combine(BroadPhase bp1, BroadPhase bp2) {
         float upperX = Math.max(bp1.getXUpperBound(), bp2.getXUpperBound());
         float upperY = Math.max(bp1.getYUpperBound(), bp2.getYUpperBound());
         float upperZ = Math.max(bp1.getZUpperBound(), bp2.getZUpperBound());
@@ -37,13 +39,24 @@ public class BroadPhase extends CollidableBounding {
     }
 
     public void render(GL2 gl, GLUT glut) {
-        if (VISIBLE && vertices != null) {
+        if (VISIBLE) {
+            if (vertices == null)
+                vertices = Point3.getVertexMap(upperBound, lowerBound);
+
             if (inContact())
                 gl.glColor3f(1f, 0.55f, 0f);
             else
                 gl.glColor3f(0, 0, 1f);
             Renderer.renderLineQuad(gl, glut, vertices);
         }
+    }
+
+    public boolean inContact() {
+        for (Contact c : ContactContainer.get())
+            if (c.involves(this))
+                return true;
+
+        return false;
     }
 
     public void update() {
@@ -53,11 +66,11 @@ public class BroadPhase extends CollidableBounding {
         upperBound = new Point3(bounding.getXUpperBound(), bounding.getYUpperBound(), bounding.getZUpperBound());
         lowerBound = new Point3(bounding.getXLowerBound(), bounding.getYLowerBound(), bounding.getZLowerBound());
 
-        vertices = Point3.getVertexMap(upperBound, lowerBound);
+        vertices = null;
     }
 
-    public BroadPhaseContact contactWith(BroadPhase bounding) {
-        return ContactDetector.BroadPhaseOnBroadPhase(this, bounding);
+    public BroadPhaseContact contactWith(BroadPhase broadPhase) {
+        return ContactDetector.BroadPhaseOnBroadPhase(this, broadPhase);
     }
 
     public Point3 getUpperBound() {

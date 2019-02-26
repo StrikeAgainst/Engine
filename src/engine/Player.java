@@ -174,10 +174,6 @@ public class Player implements KeyListener, MouseMotionListener {
 					sprinting = false;
 					break;
 				}
-				case KeyEvent.VK_C: {
-					noClip();
-					break;
-				}
 				case KeyEvent.VK_M: {
 					mouseControlsEnabled = !mouseControlsEnabled;
 					break;
@@ -210,16 +206,6 @@ public class Player implements KeyListener, MouseMotionListener {
 	public void setMouseCenter(double xCenter, double yCenter) {
 		this.mouseXCenter = xCenter;
 		this.mouseYCenter = yCenter;
-	}
-
-	public void noClip() {
-		if (noClip) {
-
-		} else {
-
-		}
-		//toggleGravitational();
-		noClip = !noClip;
 	}
 	
 	public boolean mouseControlsEnabled() {

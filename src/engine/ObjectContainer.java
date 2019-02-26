@@ -6,8 +6,6 @@ import java.util.Observable;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
-import engine.collision.Collision;
-import engine.collision.CollisionContainer;
 import engine.collision.Octree;
 
 public class ObjectContainer extends Observable implements Iterable<RigidObject> {
@@ -24,47 +22,16 @@ public class ObjectContainer extends Observable implements Iterable<RigidObject>
 		return container;
 	}
 
-	public void renderAll(GL2 gl, GLUT glut) {
-		renderObjects(gl, glut);
-		renderOctree(gl, glut);
-	}
-
-	public void renderObjects(GL2 gl, GLUT glut) {
+	public void render(GL2 gl, GLUT glut) {
 		for (RigidObject o : objects)
 			o.render(gl, glut);
 	}
 
-	public void renderOctree(GL2 gl, GLUT glut) {
-		octree.render(gl, glut);
-	}
-
-	public void updateAll(float tick) {
-		updateObjects(tick);
-		updateOctree(false);
-	}
-
-	public void updateObjects(float tick) {
+	public void update(float tick) {
 		for (RigidObject o : objects) {
 			o.update(tick);
+			Engine.queueText(o.toString());
 		}
-	}
-
-	public void updateOctree(boolean force) {
-		CollisionContainer.get().clear();
-
-		ArrayList<RigidObject> outsiders = octree.update(force);
-		for (RigidObject outsider : outsiders) {
-			if (outsider instanceof PlayableObject && ((PlayableObject) outsider).getPlayer() != null) {
-				((PlayableObject) outsider).getPlayer().reset();
-				octree.insert(outsider);
-			} else {
-				remove(outsider);
-				outsider.destroy();
-			}
-		}
-
-		ArrayList<Collision> collisions = octree.detectCollisions();
-		CollisionContainer.get().add(collisions);
 	}
 	
 	public void add(RigidObject o) {

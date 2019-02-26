@@ -1,10 +1,7 @@
 package engine;
 
-import engine.collision.BroadPhaseContact;
-import engine.collision.Collision;
+import engine.collision.*;
 import core.*;
-import engine.collision.PrimitiveContact;
-import engine.collision.bounding.BroadPhase;
 import engine.force.InertiaTensorFactory;
 
 import java.util.ArrayList;
@@ -14,7 +11,7 @@ public abstract class PhysicalObject extends RigidObject {
 	protected static float linear_damping = 0.995f, angular_damping = 0.995f;
 	protected static Vector3 gravity = new Vector3(0,0, -9.807f);
 
-	protected Matrix3x3 inverseInertiaTensorLocal, inverseInertiaTensorWorld;
+	protected Matrix3x3 inverseInertiaTensorLocal, inverseInertiaTensorGlobal;
 
 	public PhysicalObject(Point3 position, Quaternion orientation, float mass) {
 		this(position, orientation, mass, InertiaTensorFactory.forDefault(mass));
@@ -45,7 +42,7 @@ public abstract class PhysicalObject extends RigidObject {
 		float t12 = tData[0][2]*itlData[1][0] + tData[1][2]*itlData[1][1] + tData[2][2]*itlData[1][2];
 		float t22 = tData[0][2]*itlData[2][0] + tData[1][2]*itlData[2][1] + tData[2][2]*itlData[2][2];
 
-		inverseInertiaTensorWorld = new Matrix3x3(new float[][] {
+		inverseInertiaTensorGlobal = new Matrix3x3(new float[][] {
 				{
 						t00*tData[0][0] + t10*tData[1][0] + t20*tData[2][0],
 						t01*tData[0][0] + t11*tData[1][0] + t21*tData[2][0],
@@ -67,17 +64,19 @@ public abstract class PhysicalObject extends RigidObject {
 	public void update(float tick) {
 		super.update(tick);
 
-		Vector3 acc = Vector3.sum(acceleration, totalForce.scaled(inverseMass));
-		velocity.add(acc.scaled(tick));
+		lastAcceleration = acceleration;
+		lastAcceleration = Vector3.sum(lastAcceleration, totalForce.scaled(inverseMass));
+		lastVelocity = velocity;
+		velocity.add(lastAcceleration.scaled(tick));
 		velocity.scale((float) Math.pow(linear_damping, tick));
-		Point3 position = transformation.getPosition().offset(velocity.scaled(tick));
+		Point3 position = transformation.getPosition().offset(Vector3.sum(lastVelocity.scaled(tick), lastAcceleration.scaled(tick*tick/2)));
 
-		Vector3 angular_acc = inverseInertiaTensorWorld.product(totalTorque);
-		rotation.add(angular_acc.scaled(tick));
+		Vector3 angularAcc = inverseInertiaTensorGlobal.product(totalTorque);
+		rotation.add(angularAcc.scaled(tick));
 		rotation.scale((float) Math.pow(angular_damping, tick));
 		Quaternion orientation = transformation.getOrientation().sum(rotation.scaled(tick));
 
-		transformation.set(position, orientation);
+		set(position, orientation);
 
 		transformInertiaTensor();
 
@@ -88,16 +87,23 @@ public abstract class PhysicalObject extends RigidObject {
 			updateInternals();
 	}
 	
-	public Collision collides(RigidObject object) {
-		if (bounding == null || object.getBounding() == null)
-			return null;
+	public ArrayList<Contact> contactsWith(Collidable collidable) {
+		ArrayList<Contact> contacts = new ArrayList<>();
+		if (bounding == null || collidable.getBounding() == null)
+			return contacts;
 
-		BroadPhaseContact broadphaseContact = bounding.broadphaseContactWith(object.getBounding());
-		if (broadphaseContact == null)
-			return null;
+		if (collidable instanceof RigidObject) {
+			BroadPhaseContact broadphaseContact = bounding.broadphaseContactWith(((RigidObject) collidable).getBounding());
+			if (broadphaseContact == null)
+				return contacts;
 
-		ArrayList<PrimitiveContact> contacts = bounding.contactsWith(object.getBounding());
-		return new Collision(this, object, contacts, broadphaseContact);
+			//contacts.add(broadphaseContact);
+		}
+
+		for (ContactProperties properties : bounding.contactsWith(collidable.getBounding()))
+			contacts.add(new ObjectContact(this, collidable, properties));
+
+		return contacts;
 	}
 
 	public boolean hasRestingContact() {
@@ -126,6 +132,10 @@ public abstract class PhysicalObject extends RigidObject {
 		this.acceleration = acceleration;
 	}
 
+	public void setRotation(Vector3 rotation) {
+		this.rotation = rotation;
+	}
+
 	public boolean isAccelerating() {
 		return !acceleration.isNull();
 	}
@@ -140,8 +150,12 @@ public abstract class PhysicalObject extends RigidObject {
 		return 1/inverseMass;
 	}
 
-	public float getInverseMass() {
-		return inverseMass;
+	public Matrix3x3 getInverseInertiaTensorGlobal() {
+		return inverseInertiaTensorGlobal;
+	}
+
+	public Matrix3x3 getInverseInertiaTensorLocal() {
+		return inverseInertiaTensorLocal;
 	}
 
 	public boolean isGravitated() {
@@ -150,11 +164,6 @@ public abstract class PhysicalObject extends RigidObject {
 
 	public static Vector3 getGravity() {
 		return gravity;
-	}
-
-	public BroadPhase getSweptBroadPhase() {
-		// todo
-		return null;
 	}
 
 	public String getAttributesString() {

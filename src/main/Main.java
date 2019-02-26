@@ -14,11 +14,14 @@ import engine.Player;
 
 public class Main extends JFrame implements ActionListener, KeyListener, ChangeListener {
 
+	private static Scenario autoStartScenario = null;
+
 	private Animator animator = null;
 	private Renderer renderer = null;
-	private Scenario scenario, autoStartScenario = Scenario.BoxContact;
+	private Scenario scenario;
 	private JComboBox<Scenario> scenario_picker;
 	private JButton load_button;
+	private float speed = 1;
 	
 	public Main() {
 		super("Engine");
@@ -76,6 +79,7 @@ public class Main extends JFrame implements ActionListener, KeyListener, ChangeL
 		this.add(renderer, BorderLayout.CENTER);
 		this.setVisible(true);
 		animator.start();
+		updateSpeed();
 		renderer.requestFocus();
 	}
 
@@ -104,14 +108,20 @@ public class Main extends JFrame implements ActionListener, KeyListener, ChangeL
 
 	public void stateChanged(ChangeEvent e) {
 		JSlider source = (JSlider) e.getSource();
-		int speed = source.getValue();
-		if (speed == 0) {
-			if (animator.isAnimating())
-				animator.pause();
-		} else {
-			renderer.setSpeed((float) speed/100);
-			if (animator.isPaused())
-				animator.resume();
+		speed = (float) source.getValue()/100;
+		updateSpeed();
+	}
+
+	public void updateSpeed() {
+		if (renderer != null && animator != null) {
+			if (speed == 0) {
+				if (animator.isAnimating())
+					animator.pause();
+			} else {
+				renderer.setSpeed(speed);
+				if (animator.isPaused())
+					animator.resume();
+			}
 		}
 	}
 

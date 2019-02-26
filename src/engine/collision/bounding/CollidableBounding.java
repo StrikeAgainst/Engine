@@ -1,20 +1,20 @@
 package engine.collision.bounding;
 
-import engine.collision.Collision;
-import engine.collision.CollisionContainer;
+import engine.collision.Contact;
+import engine.collision.ContactContainer;
+import engine.collision.ContactProperties;
 
 import java.util.ArrayList;
 
 public abstract class CollidableBounding extends Bounding {
 
-    protected ArrayList<Collision> collisions;
-    protected boolean colliding;
-
     public boolean inContact() {
-        for (Collision c : CollisionContainer.get())
+        for (Contact c : ContactContainer.get())
             if (c.involves(this))
                 return true;
 
         return false;
     }
+
+    public abstract ArrayList<ContactProperties> contactsWith(CollidableBounding bounding);
 }

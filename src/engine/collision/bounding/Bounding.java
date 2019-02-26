@@ -1,11 +1,6 @@
 package engine.collision.bounding;
 
-import com.jogamp.opengl.GL2;
-import com.jogamp.opengl.util.gl2.GLUT;
-
 public abstract class Bounding {
-
-    public abstract void render(GL2 gl, GLUT glut);
 
     public abstract float getXUpperBound();
 
@@ -21,6 +16,10 @@ public abstract class Bounding {
 
     public String getNameString() {
         return getClass().getSimpleName();
+    }
+
+    public boolean comprises(Bounding bounding) {
+        return (this == bounding);
     }
 
     public abstract String getAttributesString();

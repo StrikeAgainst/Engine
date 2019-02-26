@@ -1,17 +1,17 @@
 package engine.collision;
 
-import engine.collision.bounding.CollidableBounding;
+import engine.collision.bounding.Bounding;
 
 public abstract class Contact {
 
-    protected CollidableBounding bounding1, bounding2;
+    protected Bounding bounding, otherBounding;
 
-    public Contact(CollidableBounding bounding1, CollidableBounding bounding2) {
-        this.bounding1 = bounding1;
-        this.bounding2 = bounding2;
+    public Contact(Bounding bounding, Bounding otherBounding) {
+        this.bounding = bounding;
+        this.otherBounding = otherBounding;
     }
 
-    public boolean involves(CollidableBounding bounding) {
-        return (bounding == bounding1 || bounding == bounding2);
+    public boolean involves(Bounding bounding) {
+        return (this.bounding.comprises(bounding) || this.otherBounding.comprises(bounding));
     }
 }

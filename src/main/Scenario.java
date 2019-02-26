@@ -45,7 +45,7 @@ public enum Scenario {
             }
         }
 
-        protected PlayableObject getPlayerObject() {
+        protected PlayableObject initPlayerObject() {
             return ObjectFactory.createPawn(new Point3(Config.INIT_PLAYER_POS),0.4f,0.1f);
         }
 
@@ -59,7 +59,7 @@ public enum Scenario {
             ObjectFactory.createWall(new Point3(0.25f, 0, 0.4f), 0.5f, 0.8f, true);
         }
 
-        protected PlayableObject getPlayerObject() {
+        protected PlayableObject initPlayerObject() {
             return ObjectFactory.createPawn(new Point3(Config.INIT_PLAYER_POS),0.4f,0.1f);
         }
 
@@ -68,51 +68,45 @@ public enum Scenario {
         }
     }, BoxContact {
         public void build() {
-            ObjectFactory.createBox(new Point3(2f, 0, 0), new Vector3(1, 1, 1), 2)
-                .setOrientation((new AxisAngle(new Vector3(1, 0, 0), Physics.R180/12)).toQuaternion());
+            this.ground = new Ground();
 
-            ObjectFactory.createBox(new Point3(2f, -1f, 0.9f), new Vector3(1, 1, 1), 2)
-                .setOrientation((new AxisAngle(new Vector3(1, 1, 1), Physics.R180)).toQuaternion());
+            //Box box1 = ObjectFactory.createBox(new Point3(2f, 0, 1.1f), new Vector3(1, 1, 1), 2);
+            //box1.setOrientation((new AxisAngle(new Vector3(1, 0, 0), Physics.R180/12)).toQuaternion());
+
+            Box box2 = ObjectFactory.createBox(new Point3(2f, -1f, 2.5f), new Vector3(1, 1, 1), 2);
+            box2.setOrientation((new AxisAngle(new Vector3(1, 0, 0), (float) Math.PI/6)).toQuaternion());
+
+            Gravity gravity = new Gravity(PhysicalObject.getGravity());
+            //ForceRegistry.get().add(box1, gravity);
+            ForceRegistry.get().add(box2, gravity);
         }
 
-        protected PlayableObject getPlayerObject() {
+        protected PlayableObject initPlayerObject() {
             return ObjectFactory.createPawn(new Point3(Config.INIT_PLAYER_POS),0.4f,0.1f);
         }
 
         protected Perspective getPerspective() {
             return Perspective.ThirdPerson;
         }
-    }, Cyclone {
-        public void build() {
-            Ball ball = ObjectFactory.createBall(new Point3(2, 0, 1), 0.5f, 1f);
-
-            Gravity gravity = new Gravity(PhysicalObject.getGravity());
-            ForceRegistry.get().add(ball, gravity);
-
-            //this.world = new World(objects, 20, 5);
-        }
-
-        protected PlayableObject getPlayerObject() {
-            return null;
-        }
-
-        protected Perspective getPerspective() {
-            return Perspective.FirstPerson;
-        }
     };
 
     protected abstract void build();
-    protected abstract PlayableObject getPlayerObject();
+    protected abstract PlayableObject initPlayerObject();
     protected abstract Perspective getPerspective();
 
+    protected Ground ground = null;
     protected PlayableObject playerObject = null;
 
     Scenario () {}
 
     public void playerAttachObject(Player player) {
         if (this.playerObject == null)
-            this.playerObject = getPlayerObject();
+            this.playerObject = initPlayerObject();
 
         player.attachPlayerObject(this.playerObject);
+    }
+
+    public Ground getGround() {
+        return ground;
     }
 }

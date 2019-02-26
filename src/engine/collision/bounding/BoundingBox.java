@@ -8,7 +8,7 @@ import core.Vector3;
 import engine.RigidObject;
 import main.Renderer;
 
-public class BoundingBox extends PrimitiveBounding {
+public class BoundingBox extends SimpleBounding {
 
     protected Vector3 halfSize;
     protected Point3[] vertexMap, verticesLocal, vertices;
@@ -39,6 +39,11 @@ public class BoundingBox extends PrimitiveBounding {
              + halfSize.getZ() * Math.abs(Vector3.dot(axis, new Vector3(getAxis(2))));
     }
 
+    public void update() {
+        super.update();
+        vertices = null;
+    }
+
     protected void initVertexMap() {
         if (vertexMap == null)
             vertexMap = new Point3[] {
@@ -54,15 +59,17 @@ public class BoundingBox extends PrimitiveBounding {
     }
 
     public Point3[] getVertexMap() {
-        initVertexMap();
+        if (vertexMap == null)
+            initVertexMap();
         return vertexMap;
     }
 
     public Point3[] getVerticesLocal() {
         if (verticesLocal == null) {
-            initVertexMap();
-            verticesLocal = new Point3[8];
+            if (vertexMap == null)
+                initVertexMap();
 
+            verticesLocal = new Point3[8];
             for (int i = 0; i < 8; i++)
                 verticesLocal[i] = transformationLocal.toGlobal(vertexMap[i]);
         }
@@ -72,9 +79,10 @@ public class BoundingBox extends PrimitiveBounding {
 
     public Point3[] getVertices() {
         if (vertices == null) {
-            initVertexMap();
-            vertices = new Point3[8];
+            if (vertexMap == null)
+                initVertexMap();
 
+            vertices = new Point3[8];
             for (int i = 0; i < 8; i++)
                 vertices[i] = getTransformation().toGlobal(vertexMap[i]);
         }

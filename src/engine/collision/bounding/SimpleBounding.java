@@ -6,20 +6,20 @@ import core.Point3;
 import engine.Transformation;
 import engine.RigidObject;
 import engine.collision.ContactDetector;
-import engine.collision.PrimitiveContact;
+import engine.collision.ContactProperties;
 
 import java.util.ArrayList;
 
-public abstract class PrimitiveBounding extends ObjectBounding {
+public abstract class SimpleBounding extends ObjectBounding {
 
     protected Transformation transformationLocal;
     private Transformation transformation;
 
-    public PrimitiveBounding(RigidObject object) {
+    public SimpleBounding(RigidObject object) {
         this(object, new Transformation());
     }
 
-    public PrimitiveBounding(RigidObject object, Transformation transformationLocal) {
+    public SimpleBounding(RigidObject object, Transformation transformationLocal) {
         super(object);
         this.transformationLocal = transformationLocal;
     }
@@ -42,17 +42,15 @@ public abstract class PrimitiveBounding extends ObjectBounding {
         gl.glPopMatrix();
     }
 
-    public ArrayList<PrimitiveContact> contactsWith(ObjectBounding bounding) {
-        ArrayList<PrimitiveContact> contacts = new ArrayList<>();
+    public ArrayList<ContactProperties> contactsWith(CollidableBounding bounding) {
         if (bounding instanceof AssembledBounding)
             return bounding.contactsWith(this);
-        else if (bounding instanceof PrimitiveBounding) {
-            PrimitiveContact c = ContactDetector.BoundingOnBounding(this, (PrimitiveBounding) bounding);
-            if (c != null)
-                contacts.add(c);
-        }
+        else if (bounding instanceof SimpleBounding)
+            return ContactDetector.BoundingOnBounding(this, (SimpleBounding) bounding);
+        else if (bounding instanceof BoundingHalfSpace)
+            return ContactDetector.BoundingOnHalfSpace(this, (BoundingHalfSpace) bounding);
 
-        return contacts;
+        return new ArrayList<>();
     }
 
     public void update() {

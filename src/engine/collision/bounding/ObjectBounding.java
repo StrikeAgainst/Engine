@@ -5,9 +5,6 @@ import com.jogamp.opengl.util.gl2.GLUT;
 import engine.RigidObject;
 import engine.Transformation;
 import engine.collision.BroadPhaseContact;
-import engine.collision.PrimitiveContact;
-
-import java.util.ArrayList;
 
 public abstract class ObjectBounding extends CollidableBounding {
 
@@ -36,8 +33,6 @@ public abstract class ObjectBounding extends CollidableBounding {
         update();
         broadphase.update();
     }
-
-    public abstract ArrayList<PrimitiveContact> contactsWith(ObjectBounding bounding);
 
     public BroadPhaseContact broadphaseContactWith(ObjectBounding bounding) {
         return broadphase.contactWith(bounding.getBroadPhase());
