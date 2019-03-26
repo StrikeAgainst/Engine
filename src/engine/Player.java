@@ -3,6 +3,8 @@ package engine;
 import core.Point3;
 import core.Quaternion;
 import core.Vector3;
+import engine.force.ForceRegistry;
+import engine.force.PickedForce;
 
 import java.awt.AWTException;
 import java.awt.Robot;
@@ -10,18 +12,23 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
 
 public class Player implements KeyListener, MouseMotionListener {
 
 	private Robot robot;
-	private static final float SENSITIVITY = 0.15f, walk_speed = 1.0f, sprint_speed = 2.0f, jump_force = 1.0f;
+	private static final double SENSITIVITY = 0.15, walk_speed = 1.0, sprint_speed = 2.0, jump_force = 1.0, picking_range = 3.0;
 
 	private double mouseXCenter, mouseYCenter;
 	private Point3 position = new Point3(Config.INIT_PLAYER_POS);
 	private Vector3 velocity = new Vector3();
-	private float cameraYaw = 0, cameraPitch = 0, xMove = 0, yMove = 0, zMove = 0;
+	private double cameraYaw = 0, cameraPitch = 0, xMove = 0, yMove = 0, zMove = 0, aimedDistance = 0, pickedDistance = 0;
 	private double sinYaw = Math.sin(cameraYaw), sinPitch = Math.sin(cameraPitch), cosYaw = Math.cos(cameraYaw), cosPitch = Math.cos(cameraPitch);
-	private boolean controlsEnabled = true, mouseControlsEnabled = true, zeroGravityControlsEnabled = true, mouseYInverted = false, noClip = false, sprinting = false;
+	private boolean controlsEnabled = true, mouseControlsEnabled = false, zeroGravityControlsEnabled = true, mouseYInverted = false, noClip = false, sprinting = false;
+
+	private PickedForce pickedForce = new PickedForce(this);
+	private RigidObject aimedObject = null;
+	private PhysicalObject pickedObject = null;
 	private PlayableObject playerObject, buffer;
 	private Perspective perspective;
 	
@@ -78,19 +85,20 @@ public class Player implements KeyListener, MouseMotionListener {
 		return playerObject;
 	}
 
-	public void update(float tick) {
+	public void update(double tick) {
+		calcAim();
 		control(tick);
 	}
 
-	public void control(float tick) {
+	public void control(double tick) {
 		Vector3 velocity = getVelocity();
-		float speed = ((sprinting && xMove > 0) ? sprint_speed : walk_speed);
+		double speed = ((sprinting && xMove > 0) ? sprint_speed : walk_speed);
 		double rootFactor = 1 / Math.max(1, Math.sqrt((xMove == 0 ? 0 : 1) + (yMove == 0 ? 0 : 1)));
 		double speedFactor = rootFactor * speed;
 
-		float x = (float) ((cosYaw * xMove - sinYaw * yMove) * speedFactor);
-		float y = (float) ((cosYaw * yMove + sinYaw * xMove) * speedFactor);
-		float z = velocity.getZ();
+		double x = (cosYaw * xMove - sinYaw * yMove) * speedFactor;
+		double y = (cosYaw * yMove + sinYaw * xMove) * speedFactor;
+		double z = velocity.getZ();
 
 		if (isGravitated()) {
 			if (playerObject.hasRestingContact())
@@ -102,6 +110,59 @@ public class Player implements KeyListener, MouseMotionListener {
 
 		if (isSpectator())
 			position.add(velocity.scaled(tick));
+	}
+
+	public void calcAim() {
+		Vector3 line = getLookingVector();
+		RigidObject closest = null;
+		double closestDistance = Double.POSITIVE_INFINITY;
+
+		for (RigidObject object : ObjectContainer.get()) {
+			ArrayList<Point3> points = object.getBounding().contactsWith(position, line);
+			for (Point3 p : points) {
+				double distance = Vector3.offset(position, p).getEuclideanMagnitude();
+				if (closest == null || distance < closestDistance) {
+					closest = object;
+					closestDistance = distance;
+				}
+			}
+		}
+
+		aimedObject = closest;
+		aimedDistance = closestDistance;
+	}
+
+	public void pick() {
+		if (pickedObject != null) {
+			ForceRegistry.get().remove(pickedObject, pickedForce);
+			pickedObject = null;
+		} else if (aimedObject != null && aimedObject instanceof PhysicalObject) {
+			pickedDistance = Vector3.offset(position, aimedObject.getPosition()).getEuclideanMagnitude();
+			if (pickedDistance <= picking_range) {
+				pickedObject = (PhysicalObject) aimedObject;
+				ForceRegistry.get().add(pickedObject, pickedForce);
+			}
+		}
+	}
+
+	public RigidObject getAimedObject() {
+		return aimedObject;
+	}
+
+	public PhysicalObject getPickedObject() {
+		return pickedObject;
+	}
+
+	public double getAimedDistance() {
+		return aimedDistance;
+	}
+
+	public double getPickedDistance() {
+		return pickedDistance;
+	}
+
+	public Point3 getPickedPoint() {
+		return getCameraPosition().offset(getLookingVector().getNormalized().scaled(pickedDistance));
 	}
 
 	public void keyPressed(KeyEvent e) {
@@ -127,7 +188,7 @@ public class Player implements KeyListener, MouseMotionListener {
 					zMove = 1;
 					break;
 				}
-				case KeyEvent.VK_CONTROL: {
+				case KeyEvent.VK_C: {
 					zMove = -1;
 					break;
 				}
@@ -135,9 +196,8 @@ public class Player implements KeyListener, MouseMotionListener {
 					sprinting = true;
 					break;
 				}
-				case KeyEvent.VK_E: {
-					Point3 point = position.offset(getLookingVector());
-					ObjectFactory.createBall(point, 0.5f, 1f).setVelocity(getVelocity());
+				case KeyEvent.VK_F: {
+					pick();
 					break;
 				}
 				case KeyEvent.VK_T: {
@@ -166,7 +226,7 @@ public class Player implements KeyListener, MouseMotionListener {
 					break;
 				}
 				case KeyEvent.VK_SPACE: 
-				case KeyEvent.VK_CONTROL: {
+				case KeyEvent.VK_C: {
 					zMove = 0;
 					break;
 				}
@@ -187,8 +247,8 @@ public class Player implements KeyListener, MouseMotionListener {
 
 	public void mouseMoved(MouseEvent e) {
 		if (controlsEnabled && mouseControlsEnabled) {
-			float xDiff = (float) (mouseXCenter-e.getXOnScreen());
-			float yDiff = (float) (e.getYOnScreen()-mouseYCenter);
+			double xDiff = mouseXCenter-e.getXOnScreen();
+			double yDiff = e.getYOnScreen()-mouseYCenter;
 
 			yaw(xDiff*SENSITIVITY, false);
 			pitch(yDiff*SENSITIVITY*(mouseYInverted?-1:1), false);
@@ -254,7 +314,7 @@ public class Player implements KeyListener, MouseMotionListener {
 	}
 
 	public Vector3 getLookingVector() {
-		return new Vector3((float)(cosPitch*cosYaw), (float)(cosPitch*sinYaw), (float)(-sinPitch));
+		return new Vector3(cosPitch*cosYaw, cosPitch*sinYaw, -sinPitch);
 	}
 
 	public Vector3 getUpVector() {
@@ -262,40 +322,40 @@ public class Player implements KeyListener, MouseMotionListener {
 		double sinUp = Math.sin(camUp);
 		double cosUp = Math.cos(camUp);
 
-		return new Vector3((float)(cosUp*cosYaw), (float)(cosUp*sinYaw), (float)(-sinUp));
+		return new Vector3(cosUp*cosYaw, cosUp*sinYaw, -sinUp);
 	}
 
-	public void yaw(float angle, boolean isRadian) {
+	public void yaw(double angle, boolean isRadian) {
 		if (!isRadian)
-			angle = (float) Math.toRadians(angle);
+			angle = Math.toRadians(angle);
 
 		setCameraYaw(cameraYaw+angle);
 	}
 
-	public void setCameraYaw(float yaw) {
+	public void setCameraYaw(double yaw) {
 		cameraYaw = Physics.boundAngleFull(yaw);
 		sinYaw = Math.sin(cameraYaw);
 		cosYaw = Math.cos(cameraYaw);
 	}
 
-	public float getCameraYaw() {
+	public double getCameraYaw() {
 		return cameraYaw;
 	}
 
-	public void pitch(float angle, boolean isRadian) {
+	public void pitch(double angle, boolean isRadian) {
 		if (!isRadian)
-			angle = (float) Math.toRadians(angle);
+			angle = Math.toRadians(angle);
 
 		setCameraPitch(cameraPitch+angle);
 	}
 
-	public void setCameraPitch(float pitch) {
+	public void setCameraPitch(double pitch) {
 		cameraPitch = Physics.boundAngleHalf(pitch);
 		sinPitch = Math.sin(cameraPitch);
 		cosPitch = Math.cos(cameraPitch);
 	}
 
-	public float getCameraPitch() {
+	public double getCameraPitch() {
 		return cameraPitch;
 	}
 

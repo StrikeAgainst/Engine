@@ -60,7 +60,7 @@ public enum Perspective {
     };
 
     public static Perspective spectator = Perspective.FirstPerson;
-    protected float distance = 0.6f;
+    protected double distance = 0.6;
     protected boolean playerObjectVisible;
 
     Perspective (boolean playerObjectVisible) {

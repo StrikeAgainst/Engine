@@ -2,13 +2,13 @@ package core;
 
 public class Quaternion {
 
-    private float r, i, j, k;
+    private double r, i, j, k;
 
     public Quaternion() {
         this(1, 0, 0, 0);
     }
 
-    public Quaternion(float r, float i, float j, float k) {
+    public Quaternion(double r, double i, double j, double k) {
         this.r = r;
         this.i = i;
         this.j = j;
@@ -22,51 +22,51 @@ public class Quaternion {
         this.k = q.getK();
     }
 
-    public static Quaternion fromYaw(float yaw) {
-        float yaw2 = yaw/2;
-        float sinYaw = (float) Math.sin(yaw2), cosYaw = (float) Math.cos(yaw2);
+    public static Quaternion fromYaw(double yaw) {
+        double yaw2 = yaw/2;
+        double sinYaw = Math.sin(yaw2), cosYaw = Math.cos(yaw2);
         return new Quaternion(cosYaw, 0, 0, sinYaw);
     }
 
-    public static Quaternion fromYawAndPitch(float yaw, float pitch) {
-        float yaw2 = yaw/2, pitch2 = pitch/2;
-        float sinYaw = (float) Math.sin(yaw2), cosYaw = (float) Math.cos(yaw2), sinPitch = (float) Math.sin(pitch2), cosPitch = (float) Math.cos(pitch2);
+    public static Quaternion fromYawAndPitch(double yaw, double pitch) {
+        double yaw2 = yaw/2, pitch2 = pitch/2;
+        double sinYaw = Math.sin(yaw2), cosYaw = Math.cos(yaw2), sinPitch = Math.sin(pitch2), cosPitch = Math.cos(pitch2);
         return new Quaternion(cosYaw*cosPitch, -(sinYaw*sinPitch), cosYaw*sinPitch, sinYaw*cosPitch);
     }
 
-    public float getR() {
+    public double getR() {
         return r;
     }
 
-    public float getI() {
+    public double getI() {
         return i;
     }
 
-    public float getJ() {
+    public double getJ() {
         return j;
     }
 
-    public float getK() {
+    public double getK() {
         return k;
     }
 
-    public void setR(float r) {
+    public void setR(double r) {
         this.r = r;
     }
 
-    public void setI(float i) {
+    public void setI(double i) {
         this.i = i;
     }
 
-    public void setJ(float j) {
+    public void setJ(double j) {
         this.j = j;
     }
 
-    public void setK(float k) {
+    public void setK(double k) {
         this.k = k;
     }
 
-    public void set(float r, float i, float j, float k) {
+    public void set(double r, double i, double j, double k) {
         this.r = r;
         this.i = i;
         this.j = j;
@@ -85,12 +85,12 @@ public class Quaternion {
     }
 
     public Quaternion getNormalized() {
-        float d = r*r+i*i+j*j+k*k;
+        double d = r*r+i*i+j*j+k*k;
 
         if (d == 0)
             return new Quaternion();
         else if (d != 1) {
-            d = (float) (1/Math.sqrt(d));
+            d = 1/Math.sqrt(d);
             return new Quaternion(r*d, i*d, j*d, k*d);
         }
 
@@ -108,28 +108,21 @@ public class Quaternion {
     }
 
     public Quaternion sum(Vector3 v) {
-        Quaternion q = product(new Quaternion(0, v.getX(), v.getY(), v.getZ()));
-        return new Quaternion(r + q.getR()*0.5f, i + q.getI()*0.5f, j + q.getJ()*0.5f, k + q.getK()*0.5f);
+        Quaternion q = new Quaternion(0, v.getX(), v.getY(), v.getZ());
+        q.multiply(this);
+        return new Quaternion(r + q.getR()*0.5, i + q.getI()*0.5, j + q.getJ()*0.5, k + q.getK()*0.5);
     }
 
     public void add(Vector3 v) {
-        Quaternion q = sum(v);
-        r = q.getR();
-        i = q.getI();
-        j = q.getJ();
-        k = q.getK();
+        set(sum(v));
     }
 
     public void multiply(Quaternion q) {
-        q = product(q);
-        r = q.getR();
-        i = q.getI();
-        j = q.getJ();
-        k = q.getK();
+        set(product(q));
     }
 
     public Quaternion product(Quaternion q) {
-        float qr = q.getR(), qi = q.getI(), qj = q.getJ(), qk = q.getK();
+        double qr = q.getR(), qi = q.getI(), qj = q.getJ(), qk = q.getK();
         return new Quaternion(
                 r*qr - i*qi - j*qj - k*qk,
                 r*qi + i*qr + j*qk - k*qj,
@@ -176,15 +169,15 @@ public class Quaternion {
         return (r == 1 || r == -1);
     }
 
-    public float toAngle() {
-        return (float) (2*Math.acos(r));
+    public double toAngle() {
+        return 2*Math.acos(r);
     }
 
     public AxisAngle toAxisAngle() {
-        float x = 1, y = 1, z = 1;
+        double x = 1, y = 1, z = 1;
 
         if (!inSingularity()) {
-            float s = (r == 0?1:(float) Math.sqrt(1-r*r));
+            double s = (r == 0?1:Math.sqrt(1-r*r));
             x = i/s;
             y = j/s;
             z = k/s;

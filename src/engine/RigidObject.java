@@ -15,14 +15,15 @@ public abstract class RigidObject extends Collidable {
 	
 	protected int id;
 	protected boolean visible = true;
-	protected static float friction, restitution;
+	protected static double friction, restitution;
 
 	protected Vector3 velocity = new Vector3(), lastVelocity = new Vector3(), acceleration = new Vector3(), lastAcceleration = new Vector3(), rotation = new Vector3(), totalForce = new Vector3(), totalTorque = new Vector3();
 	protected Transformation transformation;
 	protected ObjectBounding bounding = null;
 	protected Material material = null;
-	protected float inverseMass = 0;
+	protected double inverseMass = 0;
 	protected boolean internalsUpdated = false;
+	protected RGB color = null, gridColor = null;
 
 	public RigidObject(Point3 position, Quaternion orientation) {
 		this(new Transformation(position, orientation));
@@ -50,7 +51,7 @@ public abstract class RigidObject extends Collidable {
 				bounding.getBroadPhase().render(gl, glut);
 
 			gl.glPushMatrix();
-			gl.glMultMatrixf(transformation.getMatrix().getDataLinear(false, true), 0);
+			gl.glMultMatrixd(transformation.getMatrix().getDataLinear(false, true), 0);
 
 			this.drawTransformed(gl, glut);
 			if (bounding != null)
@@ -61,9 +62,7 @@ public abstract class RigidObject extends Collidable {
 		}
 	}
 
-	public void transformInertiaTensor() {}
-
-	public void update(float tick) {
+	public void update(double tick) {
 		internalsUpdated = false;
 	}
 
@@ -76,6 +75,21 @@ public abstract class RigidObject extends Collidable {
 	public void destroy() {
 		this.bounding = null;
 		//todo
+	}
+
+	public void add(Vector3 p, Vector3 q) {
+		transformation.add(p, q);
+		updateInternals();
+	}
+
+	public void addPosition(Vector3 p) {
+		transformation.addPosition(p);
+		updateInternals();
+	}
+
+	public void addOrientation(Vector3 q) {
+		transformation.addOrientation(q);
+		updateInternals();
 	}
 
 	public void set(Point3 p, Quaternion q) {
@@ -115,6 +129,8 @@ public abstract class RigidObject extends Collidable {
 
 	public void setVelocity(Vector3 velocity) {}
 
+	public void addVelocity(Vector3 velocity) {}
+
 	public Vector3 getPointVelocity(Point3 point) {
 		return Vector3.sum(velocity, Vector3.cross(rotation, Vector3.offset(transformation.getPosition(), point)));
 	}
@@ -133,11 +149,15 @@ public abstract class RigidObject extends Collidable {
 
 	public void setAcceleration(Vector3 acceleration) {}
 
+	public void addAcceleration(Vector3 acceleration) {}
+
 	public Vector3 getRotation() {
 		return rotation;
 	}
 
 	public void setRotation(Vector3 rotation) {}
+
+	public void addRotation(Vector3 rotation) {}
 
 	public boolean isAccelerating() {
 		return false;
@@ -153,11 +173,11 @@ public abstract class RigidObject extends Collidable {
 		totalTorque.nullify();
 	}
 
-	public float getMass() {
-		return Float.POSITIVE_INFINITY;
+	public double getMass() {
+		return Double.POSITIVE_INFINITY;
 	}
 
-	public float getInverseMass() {
+	public double getInverseMass() {
 		return inverseMass;
 	}
 
@@ -190,13 +210,21 @@ public abstract class RigidObject extends Collidable {
 	public void setInvisible() {
 		visible = false;
 	}
+
+	public void setColor(RGB color) {
+		this.color = color;
+	}
+
+	public RGB getColor() {
+		return color;
+	}
+
+	public void setGridColor(RGB gridColor) {
+		this.gridColor = gridColor;
+	}
 	
 	public int getID() {
 		return id;
-	}
-	
-	public String getNameString() {
-		return getClass().getSimpleName();
 	}
 
 	public String getNameIDString() {

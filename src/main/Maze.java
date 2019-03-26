@@ -17,11 +17,7 @@ import javax.swing.JPanel;
 public class Maze {
 	
 	private final int N;
-    private boolean[][] north;
-    private boolean[][] south; 
-    private boolean[][] west;
-    private boolean[][] east;
-    private boolean[][] visited;
+    private boolean[][] north, south, west, east, visited;
     private Random random = new Random();
     
     private Maze(int size) {

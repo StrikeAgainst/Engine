@@ -16,10 +16,10 @@ import engine.collision.bounding.OctreeBounding;
 public class Octree {
 
 	private static Octree octree = null;
-	private static final float[][] octant_map = {{1,1,1},{1,1,-1},{1,-1,1},{1,-1,-1},{-1,1,1},{-1,1,-1},{-1,-1,1},{-1,-1,-1}};
+	private static final double[][] octant_map = {{1,1,1},{1,1,-1},{1,-1,1},{1,-1,-1},{-1,1,1},{-1,1,-1},{-1,-1,1},{-1,-1,-1}};
 	
 	private int depth;
-	private float size, halfSize, quarterSize;
+	private double size, halfSize, quarterSize;
 	private final Octree parent;
 	private Point3 root;
 	private Octree[] octants = null;
@@ -27,7 +27,7 @@ public class Octree {
 	private OctreeBounding bounding;
 	private boolean changed = false;
 	
-	private Octree(Octree parent, Point3 root, float size, int depth) {
+	private Octree(Octree parent, Point3 root, double size, int depth) {
 		this.parent = parent;
 		this.root = root;
 		this.size = size;
@@ -39,7 +39,7 @@ public class Octree {
 	
 	public static Octree get() {
 		if (octree == null)
-			octree = new Octree(null, Config.ROOT, (float) Math.pow(2, Config.OCTREE_MAX_DIMENSION_EXP), 0);
+			octree = new Octree(null, Config.ROOT, Math.pow(2, Config.OCTREE_MAX_DIMENSION_EXP), 0);
 		return octree;
 	}
 	
@@ -196,6 +196,13 @@ public class Octree {
 					return container;
 			}
 		return null;
+	}
+
+	public void clear() {
+		objects.clear();
+		if (octants != null)
+			for (Octree octant : octants)
+				octant.clear();
 	}
 	
 	public boolean contains(RigidObject obj) {

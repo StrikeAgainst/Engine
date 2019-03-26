@@ -3,15 +3,11 @@ package engine;
 import core.Vector3;
 
 public class Physics {
-    public final static boolean GRAVITY_ENABLED = true;
-    public final static boolean DAMPING_ENABLED = true;
-    public final static float gravity_multiplier = 1f;
-    public final static Vector3 g = new Vector3(0, 0, -2f);
-    //public final static Vector3 g = new Vector3(0, 0, -9.807f);
-    public final static float damping = 0.995f;
-    public final static float R180 = (float) Math.PI, R360 = 2*R180, R90 = R180/2, R45 = R180/4;
+    public final static Vector3 gravity = new Vector3(0,0, -9.807);
+    public final static double linear_damping = 0.995, angular_damping = 0.995;
+    public final static double R180 = Math.PI, R360 = 2*R180, R90 = R180/2, R45 = R180/4;
 
-    public static float boundAngleHalf(float angle) {
+    public static double boundAngleHalf(double angle) {
         if (angle >= R90)
             angle = R90;
         else if (angle < -R90)
@@ -20,7 +16,7 @@ public class Physics {
         return angle;
     }
 
-    public static float boundAngleFull(float angle) {
+    public static double boundAngleFull(double angle) {
         if (angle >= R360)
             angle = angle % R360;
         else if (angle < 0)

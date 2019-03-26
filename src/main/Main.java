@@ -11,8 +11,10 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.util.Animator;
 import engine.Engine;
 import engine.Player;
+import engine.collision.ContactResolver;
+import engine.collision.ObjectContact;
 
-public class Main extends JFrame implements ActionListener, KeyListener, ChangeListener {
+public class Main extends JFrame implements ActionListener, KeyListener, ChangeListener, ItemListener {
 
 	private static Scenario autoStartScenario = null;
 
@@ -21,12 +23,21 @@ public class Main extends JFrame implements ActionListener, KeyListener, ChangeL
 	private Scenario scenario;
 	private JComboBox<Scenario> scenario_picker;
 	private JButton load_button;
-	private float speed = 1;
+	private JSlider speed_slider;
+	private JSpinner contactIterations;
+	private JCheckBox friction;
+	private JLabel description;
+	private double speed = 1;
 	
 	public Main() {
 		super("Engine");
 
+		JPanel text = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		JPanel control = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		JPanel south = new JPanel(new BorderLayout());
+
+		description = new JLabel("Select a scenario and press 'Load'");
+		text.add(description);
 
 		Scenario[] scenarios = Scenario.values();
 		scenario = scenarios[0];
@@ -39,11 +50,21 @@ public class Main extends JFrame implements ActionListener, KeyListener, ChangeL
 		load_button.addActionListener(this);
 		control.add(load_button);
 
-		JSlider speed_slider = new JSlider(JSlider.HORIZONTAL, 0, 200, 100);
+		speed_slider = new JSlider(JSlider.HORIZONTAL, 0, 200, 100);
 		speed_slider.addChangeListener(this);
 		control.add(speed_slider);
 
-		this.add(control, BorderLayout.SOUTH);
+		contactIterations = new JSpinner(new SpinnerNumberModel(100, 1, 10000, 1));
+		contactIterations.addChangeListener(this);
+		control.add(contactIterations);
+
+		friction = new JCheckBox("Friction");
+		friction.addItemListener(this);
+		control.add(friction);
+
+		south.add(text, BorderLayout.NORTH);
+		south.add(control, BorderLayout.SOUTH);
+		this.add(south, BorderLayout.SOUTH);
 
 		this.setVisible(true);
 		this.setSize(800, 600);
@@ -53,25 +74,24 @@ public class Main extends JFrame implements ActionListener, KeyListener, ChangeL
 			}
 		});
 
-		if (autoStartScenario != null)
-			load(autoStartScenario);
+		if (autoStartScenario != null) {
+			scenario = autoStartScenario;
+			load();
+		}
 	}
 	
 	public static void main(String[] args) {
 		new Main();
 	}
 
-	public void load(Scenario scenario) {
+	public void load() {
 		GLCapabilities cap = new GLCapabilities(null);
 		cap.setDoubleBuffered(true);
 
-		Player player = new Player(scenario.getPerspective());
-		scenario.playerAttachObject(player);
-
+		Player player = scenario.initPlayer();
 		Engine engine = new Engine(scenario, player);
 		renderer = new Renderer(cap, engine, player);
 		renderer.addKeyListener(this);
-		scenario.build();
 
 		animator = new Animator(renderer);
 		animator.setUpdateFPSFrames(120, System.out);
@@ -93,23 +113,42 @@ public class Main extends JFrame implements ActionListener, KeyListener, ChangeL
 		renderer = null;
 	}
 
+	public void reload() {
+		stop();
+		load();
+	}
+
 	public void exit() {
 		stop();
 		System.exit(0);
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == load_button) {
-			stop();
-			load(scenario);
-		} else if (e.getSource() == scenario_picker)
+		if (e.getSource() == load_button)
+			reload();
+		else if (e.getSource() == scenario_picker) {
 			scenario = (Scenario) scenario_picker.getSelectedItem();
+			if (scenario instanceof Scenario) {
+				description.setText(scenario.description());
+			}
+		}
 	}
 
 	public void stateChanged(ChangeEvent e) {
-		JSlider source = (JSlider) e.getSource();
-		speed = (float) source.getValue()/100;
-		updateSpeed();
+		Object source = e.getSource();
+		if (source == speed_slider) {
+			speed = (double) speed_slider.getValue() / 100;
+			updateSpeed();
+		} else if (source == contactIterations) {
+			ContactResolver.setMaxIterations((int) contactIterations.getValue());
+		}
+	}
+
+	public void itemStateChanged(ItemEvent  e) {
+		Object source = e.getSource();
+		if (source == friction) {
+			ContactResolver.DISABLE_FRICTION = (e.getStateChange() == ItemEvent.DESELECTED);
+		}
 	}
 
 	public void updateSpeed() {
@@ -135,8 +174,7 @@ public class Main extends JFrame implements ActionListener, KeyListener, ChangeL
 	public void keyPressed(KeyEvent e) {
 		switch (e.getKeyCode()) {
 			case KeyEvent.VK_R: {
-				stop();
-				load(scenario);
+				reload();
 				break;
 			}
 			case KeyEvent.VK_P: {

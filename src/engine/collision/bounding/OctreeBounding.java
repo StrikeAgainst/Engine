@@ -3,6 +3,7 @@ package engine.collision.bounding;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 import core.Point3;
+import core.RGB;
 import core.Vector3;
 import main.Renderer;
 
@@ -10,11 +11,11 @@ public class OctreeBounding extends Bounding {
 
     public static boolean VISIBLE = false;
     
-    private float size, halfSize;
+    private double size, halfSize;
     private Point3[] vertices;
     private Point3 position;
 
-    public OctreeBounding(Point3 position, float size) {
+    public OctreeBounding(Point3 position, double size) {
         this.position = position;
         this.size = size;
         this.halfSize = size/2;
@@ -36,20 +37,18 @@ public class OctreeBounding extends Bounding {
     }
 
     public void render(GL2 gl, GLUT glut) {
-        if (VISIBLE) {
-            gl.glColor3f(0, 0, 0.6f);
-            Renderer.renderLineQuad(gl, glut, vertices);
-        }
+        if (VISIBLE)
+            Renderer.renderLineQuad(gl, glut, vertices, new RGB(0,0, 0.6));
     }
 
     public boolean encloses(BroadPhase bp) {
-        float oXupper = getXUpperBound(), oXlower = getXLowerBound();
-        float oYupper = getYUpperBound(), oYlower = getYLowerBound();
-        float oZupper = getZUpperBound(), oZlower = getZLowerBound();
+        double oXupper = getXUpperBound(), oXlower = getXLowerBound();
+        double oYupper = getYUpperBound(), oYlower = getYLowerBound();
+        double oZupper = getZUpperBound(), oZlower = getZLowerBound();
 
-        float bXupper = bp.getXUpperBound(), bXlower = bp.getXLowerBound();
-        float bYupper = bp.getYUpperBound(), bYlower = bp.getYLowerBound();
-        float bZupper = bp.getZUpperBound(), bZlower = bp.getZLowerBound();
+        double bXupper = bp.getXUpperBound(), bXlower = bp.getXLowerBound();
+        double bYupper = bp.getYUpperBound(), bYlower = bp.getYLowerBound();
+        double bZupper = bp.getZUpperBound(), bZlower = bp.getZLowerBound();
 
         return (oXlower <= bXlower && bXupper <= oXupper && oYlower <= bYlower && bYupper <= oYupper && oZlower <= bZlower && bZupper <= oZupper);
     }
@@ -58,27 +57,27 @@ public class OctreeBounding extends Bounding {
         return position;
     }
 
-    public float getXUpperBound() {
+    public double getXUpperBound() {
         return position.getX()+halfSize;
     }
 
-    public float getXLowerBound() {
+    public double getXLowerBound() {
         return position.getX()-halfSize;
     }
 
-    public float getYUpperBound() {
+    public double getYUpperBound() {
         return position.getY()+halfSize;
     }
 
-    public float getYLowerBound() {
+    public double getYLowerBound() {
         return position.getY()-halfSize;
     }
 
-    public float getZUpperBound() {
+    public double getZUpperBound() {
         return position.getZ()+halfSize;
     }
 
-    public float getZLowerBound() {
+    public double getZLowerBound() {
         return position.getZ()-halfSize;
     }
 

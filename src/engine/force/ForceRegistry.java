@@ -34,9 +34,9 @@ public class ForceRegistry {
         registrations.clear();
     }
 
-    public void updateForces(float duration) {
+    public void updateForces(double tick) {
         for (ForceRegistration reg : registrations) {
-            reg.getGenerator().updateForce(reg.getObject(), duration);
+            reg.getGenerator().updateForce(reg.getObject(), tick);
         }
     }
 

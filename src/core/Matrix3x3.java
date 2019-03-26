@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class Matrix3x3 extends Matrix {
 
-    public Matrix3x3(float[][] data) {
+    public Matrix3x3(double[][] data) {
         if (data.length == 3 && data[0].length == 3)
             this.data = data;
     }
@@ -14,7 +14,7 @@ public class Matrix3x3 extends Matrix {
     }
 
     public static Matrix3x3 getIdentity() {
-        return new Matrix3x3(new float[][] {
+        return new Matrix3x3(new double[][] {
                 {1,0,0},
                 {0,1,0},
                 {0,0,1}
@@ -22,7 +22,7 @@ public class Matrix3x3 extends Matrix {
     }
 
     public static Matrix3x3 getEmpty() {
-        return new Matrix3x3(new float[][] {
+        return new Matrix3x3(new double[][] {
                 {0,0,0},
                 {0,0,0},
                 {0,0,0}
@@ -30,8 +30,8 @@ public class Matrix3x3 extends Matrix {
     }
 
     public static Matrix3x3 getSkewSymmetric(Scalar3 s) {
-        float x = s.getX(), y = s.getY(), z = s.getZ();
-        return new Matrix3x3(new float[][] {
+        double x = s.getX(), y = s.getY(), z = s.getZ();
+        return new Matrix3x3(new double[][] {
                 { 0, z,-y},
                 {-z, 0, x},
                 { y,-x, 0}
@@ -39,8 +39,8 @@ public class Matrix3x3 extends Matrix {
     }
 
     public Matrix3x3 sum(Matrix3x3 m) {
-        float[][] mData = m.getData();
-        return new Matrix3x3(new float[][] {
+        double[][] mData = m.getData();
+        return new Matrix3x3(new double[][] {
                 {
                         data[0][0]+mData[0][0],
                         data[0][1]+mData[0][1],
@@ -64,7 +64,7 @@ public class Matrix3x3 extends Matrix {
     }
 
     public Point3 product(Point3 p) {
-        float[] pData = p.toArray();
+        double[] pData = p.toArray();
         return new Point3(
                 data[0][0]*pData[0]+data[1][0]*pData[1]+data[2][0]*pData[2],
                 data[0][1]*pData[0]+data[1][1]*pData[1]+data[2][1]*pData[2],
@@ -72,7 +72,7 @@ public class Matrix3x3 extends Matrix {
     }
 
     public Vector3 product(Vector3 p) {
-        float[] pData = p.toArray();
+        double[] pData = p.toArray();
         return new Vector3(
                 data[0][0]*pData[0]+data[1][0]*pData[1]+data[2][0]*pData[2],
                 data[0][1]*pData[0]+data[1][1]*pData[1]+data[2][1]*pData[2],
@@ -80,8 +80,8 @@ public class Matrix3x3 extends Matrix {
     }
 
     public Matrix3x3 product(Matrix3x3 m) {
-        float[][] mData = m.getData();
-        return new Matrix3x3(new float[][] {
+        double[][] mData = m.getData();
+        return new Matrix3x3(new double[][] {
                 {
                     data[0][0]*mData[0][0] + data[1][0]*mData[0][1] + data[2][0]*mData[0][2],
                     data[0][1]*mData[0][0] + data[1][1]*mData[0][1] + data[2][1]*mData[0][2],
@@ -105,8 +105,8 @@ public class Matrix3x3 extends Matrix {
     }
 
     public Matrix3x4 product(Matrix3x4 m) {
-        float[][] mData = m.getData();
-        return new Matrix3x4(new float[][] {
+        double[][] mData = m.getData();
+        return new Matrix3x4(new double[][] {
                 {
                     data[0][0]*mData[0][0] + data[1][0]*mData[0][1] + data[2][0]*mData[0][2],
                     data[0][1]*mData[0][0] + data[1][1]*mData[0][1] + data[2][1]*mData[0][2],
@@ -130,7 +130,7 @@ public class Matrix3x3 extends Matrix {
         });
     }
 
-    public float getDeterminant() {
+    public double getDeterminant() {
         return data[0][0]*data[1][1]*data[2][2]
              + data[0][1]*data[1][2]*data[2][0]
              + data[0][2]*data[1][0]*data[2][1]
@@ -139,12 +139,14 @@ public class Matrix3x3 extends Matrix {
              - data[0][2]*data[1][1]*data[2][0];
     }
 
-    public float[][] getInverseData() {
-        float det = getDeterminant();
-        if (det == 0)
-            return null;
+    public double[][] getInverseData() {
+        double det = getDeterminant();
+        if (det == 0) {
+            System.out.println("Determinant equals zero! " + toString());
+            System.exit(0);
+        }
 
-        return new float[][] {
+        return new double[][] {
                 {
                     (data[1][1]*data[2][2] - data[1][2]*data[2][1])*det,
                     (data[1][2]*data[2][0] - data[1][0]*data[2][2])*det,
@@ -172,7 +174,7 @@ public class Matrix3x3 extends Matrix {
     }
 
     public Matrix3x3 getTransposed() {
-        return new Matrix3x3(new float[][] {
+        return new Matrix3x3(new double[][] {
                 {
                     data[0][0],
                     data[1][0],
@@ -192,7 +194,7 @@ public class Matrix3x3 extends Matrix {
     }
 
     public void transpose() {
-        float t;
+        double t;
 
         t = this.data[0][1];
         this.data[0][1] = this.data[1][0];
@@ -209,6 +211,13 @@ public class Matrix3x3 extends Matrix {
 
     public String toString() {
         return "Matrix3x3:["+Arrays.deepToString(data)+"]";
+    }
+
+    public class MatrixException extends Exception {
+
+        public MatrixException(String message) {
+            super(message);
+        }
     }
 
 }

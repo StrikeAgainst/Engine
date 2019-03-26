@@ -6,11 +6,11 @@ public class Point3 extends Scalar3 {
 		super();
 	}
 	
-	public Point3(float x, float y, float z) {
+	public Point3(double x, double y, double z) {
 		super(x, y, z);
 	}
 
-	public Point3(float[] p) {
+	public Point3(double[] p) {
 		super(p);
 	}
 

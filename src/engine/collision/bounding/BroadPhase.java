@@ -3,6 +3,7 @@ package engine.collision.bounding;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 import core.Point3;
+import core.RGB;
 import engine.collision.BroadPhaseContact;
 import engine.collision.Contact;
 import engine.collision.ContactContainer;
@@ -27,13 +28,13 @@ public class BroadPhase extends Bounding {
     }
 
     public static BroadPhase combine(BroadPhase bp1, BroadPhase bp2) {
-        float upperX = Math.max(bp1.getXUpperBound(), bp2.getXUpperBound());
-        float upperY = Math.max(bp1.getYUpperBound(), bp2.getYUpperBound());
-        float upperZ = Math.max(bp1.getZUpperBound(), bp2.getZUpperBound());
+        double upperX = Math.max(bp1.getXUpperBound(), bp2.getXUpperBound());
+        double upperY = Math.max(bp1.getYUpperBound(), bp2.getYUpperBound());
+        double upperZ = Math.max(bp1.getZUpperBound(), bp2.getZUpperBound());
 
-        float lowerX = Math.min(bp1.getXLowerBound(), bp2.getXLowerBound());
-        float lowerY = Math.min(bp1.getYLowerBound(), bp2.getYLowerBound());
-        float lowerZ = Math.min(bp1.getZLowerBound(), bp2.getZLowerBound());
+        double lowerX = Math.min(bp1.getXLowerBound(), bp2.getXLowerBound());
+        double lowerY = Math.min(bp1.getYLowerBound(), bp2.getYLowerBound());
+        double lowerZ = Math.min(bp1.getZLowerBound(), bp2.getZLowerBound());
 
         return new BroadPhase(new Point3(upperX, upperY, upperZ), new Point3(lowerX, lowerY, lowerZ));
     }
@@ -43,11 +44,12 @@ public class BroadPhase extends Bounding {
             if (vertices == null)
                 vertices = Point3.getVertexMap(upperBound, lowerBound);
 
+            RGB outline;
             if (inContact())
-                gl.glColor3f(1f, 0.55f, 0f);
+                outline = new RGB(1, 0.55, 0);
             else
-                gl.glColor3f(0, 0, 1f);
-            Renderer.renderLineQuad(gl, glut, vertices);
+                outline = new RGB(0, 0, 1);
+            Renderer.renderLineQuad(gl, glut, vertices, outline);
         }
     }
 
@@ -85,27 +87,27 @@ public class BroadPhase extends Bounding {
         return bounding;
     }
 
-    public float getXUpperBound() {
+    public double getXUpperBound() {
         return upperBound.getX();
     }
 
-    public float getXLowerBound() {
+    public double getXLowerBound() {
         return lowerBound.getX();
     }
 
-    public float getYUpperBound() {
+    public double getYUpperBound() {
         return upperBound.getY();
     }
 
-    public float getYLowerBound() {
+    public double getYLowerBound() {
         return lowerBound.getY();
     }
 
-    public float getZUpperBound() {
+    public double getZUpperBound() {
         return upperBound.getZ();
     }
 
-    public float getZLowerBound() {
+    public double getZLowerBound() {
         return lowerBound.getZ();
     }
 

@@ -31,6 +31,7 @@ public class Engine implements KeyListener {
     public void render(GL2 gl, GLUT glut) {
         objects.render(gl, glut);
         octree.render(gl, glut);
+        contacts.render(gl, glut);
 
         if (scenario.getGround() != null)
             scenario.getGround().render(gl, glut);
@@ -49,21 +50,28 @@ public class Engine implements KeyListener {
     }
 
     public ArrayList<String> renderText() {
-        ArrayList<String> renderText = new ArrayList<>(renderTextQueue);
+        return new ArrayList<>(renderTextQueue);
+    }
+
+    public void textQueueClear() {
         renderTextQueue.clear();
-        return renderText;
     }
 
     public void init() {
+        objects.clear();
+        contacts.clear();
+        forces.clear();
+
+        scenario.init();
         octree.update(true);
     }
 
-    public void update(float tick) {
-        queueText(contacts.toStringArray());
+    public void update(double tick) {
+        queueText(scenario.queueText());
         contacts.clear();
 
+        scenario.update(tick);
         forces.updateForces(tick);
-        player.update(tick);
         objects.update(tick);
 
         ArrayList<RigidObject> outsiders = octree.update(false);
@@ -95,6 +103,10 @@ public class Engine implements KeyListener {
 
     public Player getPlayer() {
         return player;
+    }
+
+    public Scenario getScenario() {
+        return scenario;
     }
 
     public void reset() {

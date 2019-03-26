@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class Matrix3x4 extends Matrix {
 
-    public Matrix3x4(float[][] data) {
+    public Matrix3x4(double[][] data) {
         if (data.length == 4 && data[0].length == 3)
             this.data = data;
     }
@@ -13,11 +13,11 @@ public class Matrix3x4 extends Matrix {
         this.data = m.getData();
     }
 
-    public float[][] getHomogenData() {
-        float[][] data = new float[4][];
+    public double[][] getHomogenData() {
+        double[][] data = new double[4][];
 
         for (int i = 0; i < 4; i++) {
-            data[i] = new float[4];
+            data[i] = new double[4];
             for (int j = 0; j < 3; j++)
                 data[i][j] = this.data[i][j];
 
@@ -27,14 +27,14 @@ public class Matrix3x4 extends Matrix {
         return data;
     }
 
-    public float[] getDataLinear(boolean byRows) {
+    public double[] getDataLinear(boolean byRows) {
         return getDataLinear(byRows, false);
     }
 
-    public float[] getDataLinear(boolean byRows, boolean homogen) {
-        float[][] data = (homogen?getHomogenData():this.data);
+    public double[] getDataLinear(boolean byRows, boolean homogen) {
+        double[][] data = (homogen?getHomogenData():this.data);
         int index = 0, columns = data.length, rows = data[0].length;
-        float[] arr = new float[columns*rows];
+        double[] arr = new double[columns*rows];
 
         if (byRows)
             for (int i = 0; i < rows; i++)
@@ -49,7 +49,7 @@ public class Matrix3x4 extends Matrix {
     }
 
     public Point3 product(Point3 p) {
-        float[] pData = p.toArray();
+        double[] pData = p.toArray();
         return new Point3(
                 data[0][0]*pData[0]+data[1][0]*pData[1]+data[2][0]*pData[2]+data[3][0],
                 data[0][1]*pData[0]+data[1][1]*pData[1]+data[2][1]*pData[2]+data[3][1],
@@ -57,7 +57,7 @@ public class Matrix3x4 extends Matrix {
     }
 
     public Point3 productInverse(Point3 p) {
-        float[] pData = p.toArray();
+        double[] pData = p.toArray();
         pData[0] -= data[3][0];
         pData[1] -= data[3][1];
         pData[2] -= data[3][2];
@@ -68,7 +68,7 @@ public class Matrix3x4 extends Matrix {
     }
 
     public Vector3 product(Vector3 v) {
-        float[] vData = v.toArray();
+        double[] vData = v.toArray();
         return new Vector3(
                 data[0][0]*vData[0]+data[1][0]*vData[1]+data[2][0]*vData[2],
                 data[0][1]*vData[0]+data[1][1]*vData[1]+data[2][1]*vData[2],
@@ -76,7 +76,7 @@ public class Matrix3x4 extends Matrix {
     }
 
     public Vector3 productInverse(Vector3 v) {
-        float[] vData = v.toArray();
+        double[] vData = v.toArray();
         return new Vector3(
                 data[0][0]*vData[0]+data[0][1]*vData[1]+data[0][2]*vData[2],
                 data[1][0]*vData[0]+data[1][1]*vData[1]+data[1][2]*vData[2],
@@ -84,8 +84,8 @@ public class Matrix3x4 extends Matrix {
     }
 
     public Matrix3x4 product(Matrix3x4 m) {
-        float[][] mData = m.getData();
-        return new Matrix3x4(new float[][] {
+        double[][] mData = m.getData();
+        return new Matrix3x4(new double[][] {
                 {
                     data[0][0]*mData[0][0] + data[1][0]*mData[0][1] + data[2][0]*mData[0][2],
                     data[0][1]*mData[0][0] + data[1][1]*mData[0][1] + data[2][1]*mData[0][2],
@@ -109,7 +109,7 @@ public class Matrix3x4 extends Matrix {
         });
     }
 
-    public float getDeterminant() {
+    public double getDeterminant() {
         return data[0][0]*data[1][1]*data[2][2]
               + data[0][1]*data[1][2]*data[2][0]
               + data[0][2]*data[1][0]*data[2][1]
@@ -118,12 +118,12 @@ public class Matrix3x4 extends Matrix {
               - data[0][2]*data[1][1]*data[2][0];
     }
 
-    public float[][] getInverseData() {
-        float det = getDeterminant();
+    public double[][] getInverseData() {
+        double det = getDeterminant();
         if (det == 0)
             return null;
 
-        return new float[][] {
+        return new double[][] {
                 {
                     (data[1][1]*data[2][2] - data[1][2]*data[2][1])*det,
                     (data[1][2]*data[2][0] - data[1][0]*data[2][2])*det,

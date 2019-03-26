@@ -4,5 +4,5 @@ import engine.PhysicalObject;
 
 public interface ForceGenerator {
 
-    void updateForce(PhysicalObject o, float tick);
+    void updateForce(PhysicalObject o, double tick);
 }

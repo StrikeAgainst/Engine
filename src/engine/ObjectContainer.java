@@ -27,11 +27,9 @@ public class ObjectContainer extends Observable implements Iterable<RigidObject>
 			o.render(gl, glut);
 	}
 
-	public void update(float tick) {
-		for (RigidObject o : objects) {
+	public void update(double tick) {
+		for (RigidObject o : objects)
 			o.update(tick);
-			Engine.queueText(o.toString());
-		}
 	}
 	
 	public void add(RigidObject o) {
@@ -65,6 +63,7 @@ public class ObjectContainer extends Observable implements Iterable<RigidObject>
 	
 	public void clear() {
 		objects.clear();
+		octree.clear();
 	}
 	
 	public boolean contains(RigidObject o){

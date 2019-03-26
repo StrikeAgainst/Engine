@@ -2,9 +2,13 @@ package engine.collision.bounding;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
+import core.Point3;
+import core.Vector3;
 import engine.RigidObject;
 import engine.Transformation;
 import engine.collision.BroadPhaseContact;
+
+import java.util.ArrayList;
 
 public abstract class ObjectBounding extends CollidableBounding {
 
@@ -37,6 +41,8 @@ public abstract class ObjectBounding extends CollidableBounding {
     public BroadPhaseContact broadphaseContactWith(ObjectBounding bounding) {
         return broadphase.contactWith(bounding.getBroadPhase());
     }
+
+    public abstract ArrayList<Point3> contactsWith(Point3 origin, Vector3 line);
 
     public abstract void update();
 

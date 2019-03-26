@@ -8,14 +8,14 @@ import engine.RigidObject;
 
 public class BoundingSphere extends SimpleBounding {
 
-    private float radius;
+    private double radius;
 
-    public BoundingSphere(RigidObject object, float radius) {
+    public BoundingSphere(RigidObject object, double radius) {
         super(object);
         this.radius = radius;
     }
 
-    public BoundingSphere(RigidObject object, Transformation transformation, float radius) {
+    public BoundingSphere(RigidObject object, Transformation transformation, double radius) {
         super(object, transformation);
         this.radius = radius;
     }
@@ -27,31 +27,31 @@ public class BoundingSphere extends SimpleBounding {
         glut.glutWireSphere(radius, 8, 8);
     }
 
-    public float getRadius() {
+    public double getRadius() {
         return radius;
     }
 
-    public float getXUpperBound() {
+    public double getXUpperBound() {
         return getPosition().getX()+radius;
     }
 
-    public float getXLowerBound() {
+    public double getXLowerBound() {
         return getPosition().getX()-radius;
     }
 
-    public float getYUpperBound() {
+    public double getYUpperBound() {
         return getPosition().getY()+radius;
     }
 
-    public float getYLowerBound() {
+    public double getYLowerBound() {
         return getPosition().getY()-radius;
     }
 
-    public float getZUpperBound() {
+    public double getZUpperBound() {
         return getPosition().getZ()+radius;
     }
 
-    public float getZLowerBound() {
+    public double getZLowerBound() {
         return getPosition().getZ()-radius;
     }
 

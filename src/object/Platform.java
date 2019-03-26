@@ -2,31 +2,29 @@ package object;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
-
-import core.RGB;
-import core.Vector3;
-import engine.PhysicalObject;
-import engine.InertiaTensorFactory;
 import core.Point3;
 import core.Quaternion;
+import core.RGB;
+import core.Vector3;
+import engine.RigidObject;
 import main.Renderer;
 
-public class Box extends PhysicalObject {
+public class Platform extends RigidObject {
 
     private Vector3 size;
     private Point3[] vertexMap, vertices;
-    private RGB[] colors = new RGB[] {RGB.getRandom(), RGB.getRandom(), RGB.getRandom(), RGB.getRandom(), RGB.getRandom(), RGB.getRandom()};
 
-    public Box(Point3 position, Vector3 size, double mass) {
-        super(position, new Quaternion(), mass, InertiaTensorFactory.forCuboid(mass, size));
+    public Platform(Point3 position, Vector3 size) {
+        super(position, new Quaternion());
         this.size = size;
+        this.color = new RGB(0.5,0.5,0.5);
+        this.gridColor = new RGB(1,1,1);
     }
 
     public void draw(GL2 gl, GLUT glut) {
         Point3[] points = getVertices();
-        Renderer.renderFillQuad(gl, glut, points, colors);
-        if (gridColor != null)
-            Renderer.renderLineQuad(gl, glut, points, gridColor);
+        Renderer.renderFillQuad(gl, glut, points, color);
+        Renderer.renderLineQuad(gl, glut, points, gridColor);
     }
 
     public void drawTransformed(GL2 gl, GLUT glut) {}
@@ -70,13 +68,5 @@ public class Box extends PhysicalObject {
                 vertices[i] = transformation.toGlobal(vertexMap[i]);
         }
         return vertices;
-    }
-
-    public void setColor(RGB color) {
-        this.colors = new RGB[] {color, color, color, color, color, color};
-    }
-
-    public void setColors(RGB[] colors) {
-        this.colors = colors;
     }
 }

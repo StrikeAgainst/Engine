@@ -1,28 +1,27 @@
 package engine;
 
-import core.Matrix3x3;
 import core.Point3;
 import core.Quaternion;
 
 public abstract class PlayableObject extends PhysicalObject {
 
-	protected static float restitution = 0f;
+	protected static double restitution = 0;
 	public Player player;
 
-	public PlayableObject(Point3 position, Quaternion orientation, float mass) {
+	public PlayableObject(Point3 position, Quaternion orientation, double mass) {
 		super(position, orientation, mass);
 	}
 
-	public PlayableObject(Point3 position, Quaternion orientation, float mass, Matrix3x3 inertiaTensor) {
+	public PlayableObject(Point3 position, Quaternion orientation, double mass, InertiaTensor inertiaTensor) {
 		super(position, orientation, mass, inertiaTensor);
 	}
 
-	public PlayableObject(Player player, Point3 position, Quaternion orientation, float mass) {
+	public PlayableObject(Player player, Point3 position, Quaternion orientation, double mass) {
 		this(position, orientation, mass);
 		attachPlayer(player);
 	}
 
-	public PlayableObject(Player player, Point3 position, Quaternion orientation, float mass, Matrix3x3 inertiaTensor) {
+	public PlayableObject(Player player, Point3 position, Quaternion orientation, double mass, InertiaTensor inertiaTensor) {
 		this(position, orientation, mass, inertiaTensor);
 		attachPlayer(player);
 	}

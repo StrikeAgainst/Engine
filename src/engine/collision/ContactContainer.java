@@ -1,5 +1,8 @@
 package engine.collision;
 
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.util.gl2.GLUT;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -20,6 +23,11 @@ public class ContactContainer implements Iterable<Contact> {
 
     public ArrayList<Contact> getAll() {
         return new ArrayList<>(contacts);
+    }
+
+    public void render(GL2 gl, GLUT glut) {
+        for (Contact c : contacts)
+            c.render(gl, glut);
     }
 
     public void add(Contact c) {

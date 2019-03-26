@@ -4,15 +4,15 @@ import java.util.Arrays;
 
 public abstract class Matrix {
 
-    protected float[][] data;
+    protected double[][] data;
 
-    public float[][] getData() {
+    public double[][] getData() {
         return data;
     }
 
-    public float[] getDataLinear(boolean byRows) {
+    public double[] getDataLinear(boolean byRows) {
         int index = 0, columns = data.length, rows = data[0].length;
-        float[] arr = new float[columns*rows];
+        double[] arr = new double[columns*rows];
 
         if (byRows)
             for (int i = 0; i < rows; i++)
@@ -26,13 +26,13 @@ public abstract class Matrix {
         return arr;
     }
 
-    public void scale(float s) {
+    public void scale(double s) {
         for (int i = 0; i < data.length; i++)
             for (int j = 0; j < data[0].length; j++)
                 data[i][j] *= s;
     }
 
-    public float[] getColumn(int column) {
+    public double[] getColumn(int column) {
         return data[column];
     }
 

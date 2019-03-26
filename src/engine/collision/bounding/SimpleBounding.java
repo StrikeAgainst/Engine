@@ -3,6 +3,7 @@ package engine.collision.bounding;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 import core.Point3;
+import core.Vector3;
 import engine.Transformation;
 import engine.RigidObject;
 import engine.collision.ContactDetector;
@@ -30,14 +31,14 @@ public abstract class SimpleBounding extends ObjectBounding {
 
     public void renderSub(GL2 gl, GLUT glut) {
         if (inContact())
-            gl.glColor3f(1f, 0.55f, 0f);
+            gl.glColor3d(1, 0.55, 0);
         else
-            gl.glColor3f(0, 0, 1f);
+            gl.glColor3d(0, 0, 1);
 
         this.draw(gl, glut);
 
         gl.glPushMatrix();
-        gl.glMultMatrixf(transformationLocal.getMatrix().getDataLinear(false, true), 0);
+        gl.glMultMatrixd(transformationLocal.getMatrix().getDataLinear(false, true), 0);
         this.drawTransformed(gl, glut);
         gl.glPopMatrix();
     }
@@ -51,6 +52,10 @@ public abstract class SimpleBounding extends ObjectBounding {
             return ContactDetector.BoundingOnHalfSpace(this, (BoundingHalfSpace) bounding);
 
         return new ArrayList<>();
+    }
+
+    public ArrayList<Point3> contactsWith(Point3 origin, Vector3 line) {
+        return ContactDetector.LineOnBounding(origin, line, this);
     }
 
     public void update() {
@@ -73,7 +78,7 @@ public abstract class SimpleBounding extends ObjectBounding {
         return getTransformation().getPosition();
     }
 
-    public float[] getAxis(int column) {
+    public double[] getAxis(int column) {
         return getTransformation().getMatrix().getColumn(column);
     }
 

@@ -2,17 +2,17 @@ package engine.collision.bounding;
 
 public abstract class Bounding {
 
-    public abstract float getXUpperBound();
+    public abstract double getXUpperBound();
 
-    public abstract float getXLowerBound();
+    public abstract double getXLowerBound();
 
-    public abstract float getYUpperBound();
+    public abstract double getYUpperBound();
 
-    public abstract float getYLowerBound();
+    public abstract double getYLowerBound();
 
-    public abstract float getZUpperBound();
+    public abstract double getZUpperBound();
 
-    public abstract float getZLowerBound();
+    public abstract double getZLowerBound();
 
     public String getNameString() {
         return getClass().getSimpleName();

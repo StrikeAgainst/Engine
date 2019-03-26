@@ -9,7 +9,7 @@ public class Polygon {
 	private Point3[] points;
 	private Vector3 normal;
 	private Vector3[] vectors;
-	private RGB color = new RGB(1f, 1f, 1f);
+	private RGB color = new RGB(1, 1, 1);
 	
 	public Polygon(Point3[] points) throws PolygonException {
 		int angles = points.length;
@@ -49,11 +49,11 @@ public class Polygon {
 	}
 	
 	public void draw(GL2 gl, GLUT glut) {
-		gl.glColor3f(color.getR(),color.getG(),color.getB());
+		gl.glColor3d(color.getR(),color.getG(),color.getB());
 		gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_FILL);
 		gl.glBegin(GL2.GL_POLYGON);
 		for (Point3 point : getPoints())
-			gl.glVertex3f(point.getX(), point.getY(), point.getZ());
+			gl.glVertex3d(point.getX(), point.getY(), point.getZ());
 		gl.glEnd();
 	}
 	
@@ -64,4 +64,12 @@ public class Polygon {
 	public boolean onPlane(Point3 p) {
 		return (Vector3.dot(this.normal, Vector3.offset(points[0], p)) == 0);
 	}
+
+	public class PolygonException extends Exception {
+
+		public PolygonException(String message) {
+			super(message);
+		}
+	}
+
 }

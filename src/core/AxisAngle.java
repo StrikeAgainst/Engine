@@ -5,9 +5,9 @@ import engine.Physics;
 public class AxisAngle {
 
     private Vector3 axis;
-    private float angle;
+    private double angle;
 
-    public AxisAngle(Vector3 axis, float angle) {
+    public AxisAngle(Vector3 axis, double angle) {
         axis.normalize();
         this.axis = axis;
         this.angle = Physics.boundAngleFull(angle);
@@ -26,11 +26,11 @@ public class AxisAngle {
         return axis;
     }
 
-    public void setAngle(float angle) {
+    public void setAngle(double angle) {
         this.angle = Physics.boundAngleFull(angle);
     }
 
-    public float getAngle() {
+    public double getAngle() {
         return angle;
     }
 
@@ -43,7 +43,11 @@ public class AxisAngle {
     }
 
     public Quaternion toQuaternion() {
-        float sin = (float) Math.sin(angle/2), cos = (float) Math.cos(angle/2);
+        double sin = Math.sin(angle/2), cos = Math.cos(angle/2);
         return new Quaternion(cos, axis.getX()*sin, axis.getY()*sin, axis.getZ()*sin);
+    }
+
+    public String toString() {
+        return "AxisAngle:[axis:"+axis+", angle:"+Math.toDegrees(angle)+"]";
     }
 }

@@ -1,112 +1,374 @@
 package main;
 
-import core.AxisAngle;
-import core.RGB;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.util.gl2.GLUT;
 import core.Vector3;
 import engine.*;
+import engine.force.Drag;
 import engine.force.ForceRegistry;
 import engine.force.Gravity;
 import object.*;
 import core.Point3;
 
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.ArrayList;
 import java.util.Random;
 
-public enum Scenario {
+public enum Scenario implements KeyListener {
     Maze {
-        public void build() {
-            Random random = new Random();
+        private int boardSize = 8;
+        private double panelSize = 1, wallHeight = 0.8, wallStrength = 0.1, tiltFactor = 0.5, tiltGravity;
+        private Ball ball;
+        private Gravity gravity = new Gravity();
+        private Drag drag = new Drag();
 
-            int boardSize = 12;
-            float panelSize = 0.5f;
-            float x, y, half = panelSize/2, wallHeight = 0.8f;
+        public void init() {
+            ground = new Ground(new Vector3(0, 0, 1), 0);
+            ground.setMaterial(Material.Metal);
+
+            ball = ObjectFactory.createBall(new Point3(1.5, 1.5, 2), 0.4, 3, Material.Metal);
+            ForceRegistry.get().add(ball, gravity);
+            ForceRegistry.get().add(ball, drag);
+            tiltGravity = tiltFactor * gravity.getGravity().getEuclideanMagnitude();
+
+            double x, y, halfPanelSize = panelSize/2, halfWallHeight = wallHeight/2;
             main.Maze m = main.Maze.createRandomMaze(boardSize);
+            boolean[][] south = m.getSouth(), east = m.getEast();
 
-            for (int i = 0; i < boardSize; i++) {
+            for (int i = 0; i <= boardSize; i++) {
                 x = i*panelSize;
-                for (int j = 0; j < boardSize; j++) {
+                for (int j = 0; j <= boardSize; j++) {
                     y = j*panelSize;
 
-                    if (i == 0 && j == 0)
-                        ObjectFactory.createTile(new Point3(x+half, y+half, 0.0f), panelSize, new RGB(0, 0, 0.5f));
-                    else if (i == boardSize-1 && j == boardSize-1)
-                        ObjectFactory.createTile(new Point3(x+half, y+half, 0.0f), panelSize, new RGB(0, 0.5f, 0));
-                    else if (random.nextInt(boardSize) != 0)
-                        ObjectFactory.createTile(new Point3(x+half, y+half, 0.0f), panelSize);
+                    if (south[j][i] && j > 0 && (i < boardSize || j < boardSize))
+                        ObjectFactory.createPlatform(new Point3(x + panelSize, y + halfPanelSize, halfWallHeight), new Vector3(wallStrength, panelSize, wallHeight), Material.Metal);
+                    if (east[j][i] && i > 0)
+                        ObjectFactory.createPlatform(new Point3(x + halfPanelSize, y + panelSize, halfWallHeight), new Vector3(panelSize, wallStrength, wallHeight), Material.Metal);
+                }
+            }
+        }
+        public Player initPlayer() {
+            double size = boardSize*panelSize, center = panelSize+size/2;
+            Player player = new Player(perspective);
+            player.setPosition(new Point3(center, center, size));
+            player.setCameraYaw(Math.PI);
+            player.setCameraPitch(Math.PI/2);
+            return player;
+        }
 
-                    if (m.getNorth()[j+1][i+1] && (i == 0 || !m.getSouth()[j+1][i]))
-                        ObjectFactory.createWall(new Point3(x, y+half, wallHeight/2), panelSize, wallHeight, false);
-                    if (m.getSouth()[j+1][i+1])
-                        ObjectFactory.createWall(new Point3(x+panelSize, y+half, wallHeight/2), panelSize, wallHeight, false);
-                    if (m.getWest()[j+1][i+1] && (j == 0 || !m.getEast()[j][i+1]))
-                        ObjectFactory.createWall(new Point3(x+half, y, wallHeight/2), panelSize, wallHeight, true);
-                    if (m.getEast()[j+1][i+1])
-                        ObjectFactory.createWall(new Point3(x+half, y+panelSize, wallHeight/2), panelSize, wallHeight, true);
+        public void keyPressed(KeyEvent e) {
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_UP: {
+                    gravity.getGravity().add(new Vector3(-tiltGravity, 0, 0));
+                    break;
+                }
+                case KeyEvent.VK_DOWN: {
+                    gravity.getGravity().add(new Vector3(tiltGravity, 0, 0));
+                    break;
+                }
+                case KeyEvent.VK_LEFT: {
+                    gravity.getGravity().add(new Vector3(0, -tiltGravity, 0));
+                    break;
+                }
+                case KeyEvent.VK_RIGHT: {
+                    gravity.getGravity().add(new Vector3(0, tiltGravity, 0));
+                    break;
                 }
             }
         }
 
-        protected PlayableObject initPlayerObject() {
-            return ObjectFactory.createPawn(new Point3(Config.INIT_PLAYER_POS),0.4f,0.1f);
+        public void keyReleased(KeyEvent e) {
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_UP: {
+                    gravity.getGravity().setX(0);
+                    break;
+                }
+                case KeyEvent.VK_DOWN: {
+                    gravity.getGravity().setX(0);
+                    break;
+                }
+                case KeyEvent.VK_LEFT: {
+                    gravity.getGravity().setY(0);
+                    break;
+                }
+                case KeyEvent.VK_RIGHT: {
+                    gravity.getGravity().setY(0);
+                    break;
+                }
+            }
         }
 
-        protected Perspective getPerspective() {
-            return Perspective.FirstPerson;
+        public void keyTyped(KeyEvent e) {}
+
+        public String description() {
+            return "Use the arrow keys to tilt gravity, and try to steer the ball out of the maze.";
         }
-    }, Corner {
-        public void build() {
-            ObjectFactory.createTile(new Point3(0.25f, 0.25f, 0.0f), 0.5f, new RGB(0, 0, 0.5f));
-            ObjectFactory.createWall(new Point3(0, 0.25f, 0.4f), 0.5f, 0.8f, false);
-            ObjectFactory.createWall(new Point3(0.25f, 0, 0.4f), 0.5f, 0.8f, true);
+    }, Impact{
+        private Ball comet;
+
+        public void init() {
+            ObjectFactory.createBox(new Point3(6, 1.8, 1.8), new Vector3(1, 1, 1), 5, Material.Metal);
+            ObjectFactory.createBox(new Point3(6, 0.6, 1.8), new Vector3(1, 1, 1), 5, Material.Metal);
+            ObjectFactory.createBox(new Point3(6, -0.6, 1.8), new Vector3(1, 1, 1), 5, Material.Metal);
+            ObjectFactory.createBox(new Point3(6, -1.8, 1.8), new Vector3(1, 1, 1), 5, Material.Metal);
+
+            ObjectFactory.createBox(new Point3(6, 1.8, 0.6), new Vector3(1, 1, 1), 5, Material.Metal);
+            ObjectFactory.createBox(new Point3(6, 0.6, 0.6), new Vector3(1, 1, 1), 5, Material.Metal);
+            ObjectFactory.createBox(new Point3(6, -0.6, 0.6), new Vector3(1, 1, 1), 5, Material.Metal);
+            ObjectFactory.createBox(new Point3(6, -1.8, 0.6), new Vector3(1, 1, 1), 5, Material.Metal);
+
+            ObjectFactory.createBox(new Point3(6, 1.8, -0.6), new Vector3(1, 1, 1), 5, Material.Metal);
+            ObjectFactory.createBox(new Point3(6, 0.6, -0.6), new Vector3(1, 1, 1), 5, Material.Metal);
+            ObjectFactory.createBox(new Point3(6, -0.6, -0.6), new Vector3(1, 1, 1), 5, Material.Metal);
+            ObjectFactory.createBox(new Point3(6, -1.8, -0.6), new Vector3(1, 1, 1), 5, Material.Metal);
+
+            ObjectFactory.createBox(new Point3(6, 1.8, -1.8), new Vector3(1, 1, 1), 5, Material.Metal);
+            ObjectFactory.createBox(new Point3(6, 0.6, -1.8), new Vector3(1, 1, 1), 5, Material.Metal);
+            ObjectFactory.createBox(new Point3(6, -0.6, -1.8), new Vector3(1, 1, 1), 5, Material.Metal);
+            ObjectFactory.createBox(new Point3(6, -1.8, -1.8), new Vector3(1, 1, 1), 5, Material.Metal);
+
+            comet = ObjectFactory.createBall(new Point3(0, 0, 0), 1.5, 8, Material.Metal);
+            comet.addVelocity(new Vector3(2, 0, 0));
         }
 
-        protected PlayableObject initPlayerObject() {
-            return ObjectFactory.createPawn(new Point3(Config.INIT_PLAYER_POS),0.4f,0.1f);
+        public Player initPlayer() {
+            Player player = new Player(perspective);
+            player.setPosition(new Point3(-1, 4, 0.5));
+            player.setCameraYaw(-Physics.R45);
+            return player;
         }
 
-        protected Perspective getPerspective() {
-            return Perspective.ThirdPerson;
+        public void keyPressed(KeyEvent e) {
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_UP: {
+                    comet.applyForce(new Vector3(0, 0, 10));
+                    break;
+                }
+                case KeyEvent.VK_DOWN: {
+                    comet.applyForce(new Vector3(0, 0, -10));
+                    break;
+                }
+                case KeyEvent.VK_LEFT: {
+                    comet.applyForce(new Vector3(0, 10, 0));
+                    break;
+                }
+                case KeyEvent.VK_RIGHT: {
+                    comet.applyForce(new Vector3(0, -10, 0));
+                    break;
+                }
+            }
         }
-    }, BoxContact {
-        public void build() {
-            this.ground = new Ground();
 
-            //Box box1 = ObjectFactory.createBox(new Point3(2f, 0, 1.1f), new Vector3(1, 1, 1), 2);
-            //box1.setOrientation((new AxisAngle(new Vector3(1, 0, 0), Physics.R180/12)).toQuaternion());
+        public void keyReleased(KeyEvent e) {}
+        public void keyTyped(KeyEvent e) {}
 
-            Box box2 = ObjectFactory.createBox(new Point3(2f, -1f, 2.5f), new Vector3(1, 1, 1), 2);
-            box2.setOrientation((new AxisAngle(new Vector3(1, 0, 0), (float) Math.PI/6)).toQuaternion());
+        public String description() {
+            return "Use the arrow keys to steer the ball slightly on its collision course with the boxes.";
+        }
+    }, BallPool {
+        private double length = 3, width = 2, height = 1, thickness = 0.1, radius = 0.2;
+        private double halfLength = length/2, halfWidth = width/2, halfHeight = height/2;
+        private double maxInterval = 2, currentInterval = 0;
+        private Gravity gravity = new Gravity();
+        private Random random = new Random();
 
-            Gravity gravity = new Gravity(PhysicalObject.getGravity());
-            //ForceRegistry.get().add(box1, gravity);
+        public void init() {
+            ground = new Ground(new Vector3(0, 0, 1), 0);
+            ground.setMaterial(Material.Metal);
+
+            ObjectFactory.createPlatform(new Point3(halfLength+thickness, 0, halfHeight), new Vector3(thickness, width+thickness, height), Material.Metal);
+            ObjectFactory.createPlatform(new Point3(-halfLength-thickness, 0, halfHeight), new Vector3(thickness, width+thickness, height), Material.Metal);
+            ObjectFactory.createPlatform(new Point3(0, halfWidth+thickness, halfHeight), new Vector3(length+thickness, thickness, height), Material.Metal);
+            ObjectFactory.createPlatform(new Point3(0, -halfWidth-thickness, halfHeight), new Vector3(length+thickness, thickness, height), Material.Metal);
+        }
+
+        public Player initPlayer() {
+            Player player = new Player(perspective);
+            player.setPosition(new Point3(-halfLength, 0, height+1));
+            player.setCameraPitch(Physics.R180/3);
+            return player;
+        }
+
+        public void update(double tick) {
+            currentInterval += tick;
+            if (currentInterval >= maxInterval) {
+                currentInterval = 0;
+
+                double x = halfLength - random.nextDouble()*halfLength*2;
+                double y = halfWidth - random.nextDouble()*halfWidth*2;
+
+                Ball ball = ObjectFactory.createBall(new Point3(x, y, height+1), radius, 1, Material.Metal);
+                ForceRegistry.get().add(ball, gravity);
+            }
+        }
+
+        public void keyPressed(KeyEvent e) {
+        }
+
+        public void keyReleased(KeyEvent e) {}
+        public void keyTyped(KeyEvent e) {}
+
+        public String description() {
+            return "A pool getting filled with balls.";
+        }
+    }, BoxTower {
+        private Gravity gravity = new Gravity();
+
+        public void init() {
+            ground = new Ground(new Vector3(0, 0, 1), 0);
+            ground.setMaterial(Material.Metal);
+
+            Box box1 = ObjectFactory.createBox(new Point3(5, 0.4, 0.6), new Vector3(1, 1, 1), 5, Material.Metal);
+            ForceRegistry.get().add(box1, gravity);
+
+            Box box2 = ObjectFactory.createBox(new Point3(5, -0.4, 1.7), new Vector3(1, 1, 1), 5, Material.Metal);
             ForceRegistry.get().add(box2, gravity);
+
+            Box box3 = ObjectFactory.createBox(new Point3(5, 0.4, 2.8), new Vector3(1, 1, 1), 5, Material.Metal);
+            ForceRegistry.get().add(box3, gravity);
+
+            Box box4 = ObjectFactory.createBox(new Point3(5, -0.4, 3.9), new Vector3(1, 1, 1), 5, Material.Metal);
+            ForceRegistry.get().add(box4, gravity);
+
+            Box box5 = ObjectFactory.createBox(new Point3(5, 0.4, 5), new Vector3(1, 1, 1), 5, Material.Metal);
+            ForceRegistry.get().add(box5, gravity);
+
+            Box box6 = ObjectFactory.createBox(new Point3(5, -0.4, 6.1), new Vector3(1, 1, 1), 5, Material.Metal);
+            ForceRegistry.get().add(box6, gravity);
         }
 
-        protected PlayableObject initPlayerObject() {
-            return ObjectFactory.createPawn(new Point3(Config.INIT_PLAYER_POS),0.4f,0.1f);
+        public Player initPlayer() {
+            Player player = new Player(perspective);
+            player.setCameraPitch(-Physics.R90/9);
+            return player;
         }
 
-        protected Perspective getPerspective() {
-            return Perspective.ThirdPerson;
+        public void keyPressed(KeyEvent e) {}
+        public void keyReleased(KeyEvent e) {}
+        public void keyTyped(KeyEvent e) {}
+
+        public String description() {
+            return "A tower of boxes crashing down.";
+        }
+    }, DEBUG {
+        private Box box1, box2;
+        private Ball ball1, ball2;
+        private PhysicalObject monitored;
+        protected Gravity gravity = new Gravity();
+
+        public void init() {
+            ground = new Ground(new Vector3(0, 0, 1), 0);
+            ground.setMaterial(Material.Metal);
+
+            box1 = ObjectFactory.createBox(new Point3(3, 0.8, 3.0), new Vector3(1, 1, 1), 5, Material.Metal);
+            ForceRegistry.get().add(box1, gravity);
+
+            box2 = ObjectFactory.createBox(new Point3(3, 0, 5.0), new Vector3(1, 1, 1), 5, Material.Metal);
+            ForceRegistry.get().add(box2, gravity);
+
+            monitored = box1;
+        }
+
+        public ArrayList<String> queueText() {
+            ArrayList<String> strings = new ArrayList<>();
+
+            strings.add(monitored.toString());
+            strings.add("Rotation: "+monitored.getRotation().toString());
+
+            //strings.addAll(Arrays.asList(ContactContainer.get().toStringArray()));
+            return strings;
+        }
+
+        public void keyPressed(KeyEvent e) {
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_UP: {
+                    monitored.applyForce(new Vector3(0, 0, 200));
+                    break;
+                }
+                case KeyEvent.VK_DOWN: {
+                    monitored.applyForce(new Vector3(0, 0, -200));
+                    break;
+                }
+                case KeyEvent.VK_LEFT: {
+                    monitored.addRotation(new Vector3(0, 0, 1));
+                    break;
+                }
+                case KeyEvent.VK_RIGHT: {
+                    monitored.addRotation(new Vector3(0, 0, -1));
+                    break;
+                }
+                case KeyEvent.VK_NUMPAD5: {
+                    monitored.stop();
+                    break;
+                }
+                case KeyEvent.VK_NUMPAD2: {
+                    monitored.addRotation(new Vector3(0, -1, 0));
+                    break;
+                }
+                case KeyEvent.VK_NUMPAD4: {
+                    monitored.addRotation(new Vector3(-1, 0, 0));
+                    break;
+                }
+                case KeyEvent.VK_NUMPAD6: {
+                    monitored.addRotation(new Vector3(1, 0, 0));
+                    break;
+                }
+                case KeyEvent.VK_NUMPAD8: {
+                    monitored.addRotation(new Vector3(0, 1, 0));
+                    break;
+                }
+                case KeyEvent.VK_U: {
+                    monitored.applyForce(new Vector3(0, 0, 100), new Point3(3, 0, 0));
+                    break;
+                }
+                case KeyEvent.VK_H: {
+                    monitored.applyForce(new Vector3(0, 0, 100), new Point3(4, -1, 0));
+                    break;
+                }
+                case KeyEvent.VK_J: {
+                    monitored.applyForce(new Vector3(0, 0, 100), new Point3(3, -2, 0));
+                    break;
+                }
+                case KeyEvent.VK_K: {
+                    monitored.applyForce(new Vector3(0, 0, 100), new Point3(2, -1, 0));
+                    break;
+                }
+            }
+        }
+
+        public void keyReleased(KeyEvent e) {}
+        public void keyTyped(KeyEvent e) {}
+
+        public String description() {
+            return "This is a debug scenario.";
         }
     };
 
-    protected abstract void build();
-    protected abstract PlayableObject initPlayerObject();
-    protected abstract Perspective getPerspective();
+    public abstract void init();
 
     protected Ground ground = null;
-    protected PlayableObject playerObject = null;
+    protected Perspective perspective;
 
     Scenario () {}
 
-    public void playerAttachObject(Player player) {
-        if (this.playerObject == null)
-            this.playerObject = initPlayerObject();
-
-        player.attachPlayerObject(this.playerObject);
+    public Player initPlayer() {
+        return new Player(perspective);
     }
 
     public Ground getGround() {
         return ground;
     }
+
+    public String description() {
+        return "";
+    }
+
+    public ArrayList<String> queueText() {
+        return new ArrayList<>();
+    }
+
+    public void render(GL2 gl, GLUT glut) {}
+
+    public void update(double tick) {}
 }

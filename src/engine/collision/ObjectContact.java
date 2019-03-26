@@ -1,5 +1,8 @@
 package engine.collision;
 
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.util.gl2.GLUT;
 import core.*;
 import engine.Collidable;
 import engine.Material;
@@ -9,7 +12,8 @@ import engine.collision.bounding.CollidableBounding;
 
 public class ObjectContact extends Contact {
 
-    public static final float CLOSING_VELOCITY_MIN_LIMIT = 0.1f; //todo: adjust
+    public static boolean VISIBLE = false;
+    public static final double CLOSING_VELOCITY_MIN_LIMIT = 0.1; //todo: adjust
 
     protected PhysicalObject[] objects = new PhysicalObject[2];
     protected Vector3[] offsets = new Vector3[2], velocities = new Vector3[2], accVelocities = new Vector3[2];
@@ -17,7 +21,7 @@ public class ObjectContact extends Contact {
 
     protected Point3 point;
     protected Vector3 normal, closingVelocity, closingAccVelocity;
-    protected float depth, friction, restitution, deltaVelocity;
+    protected double depth, friction, restitution, deltaVelocity;
     protected Matrix3x3 toLocal, toGlobal;
 
     private ObjectContact(CollidableBounding bounding, CollidableBounding otherBounding, ContactProperties properties) {
@@ -33,9 +37,25 @@ public class ObjectContact extends Contact {
         material2 = collidable.getMaterial();
 
         if (collidable instanceof PhysicalObject)
-            this.objects = new PhysicalObject[] {object, (PhysicalObject) collidable};
+            this.objects = new PhysicalObject[]{object, (PhysicalObject) collidable};
         else
             this.objects = new PhysicalObject[] {object};
+    }
+
+    public void render(GL2 gl, GLUT glut) {
+        if (VISIBLE) {
+            gl.glTranslated(point.getX(), point.getY(), point.getZ());
+            gl.glColor3d(1,1,0);
+            gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_FILL);
+            glut.glutSolidSphere(0.1, 12, 4);
+            gl.glTranslated(-point.getX(), -point.getY(), -point.getZ());
+
+            Point3 offset = point.offset(normal);
+            gl.glBegin (GL2.GL_LINES);
+            gl.glVertex3d(point.getX(), point.getY(), point.getZ());
+            gl.glVertex3d(offset.getX(), offset.getY(), offset.getZ());
+            gl.glEnd();
+        }
     }
 
     public PhysicalObject[] getObjects() {
@@ -50,11 +70,11 @@ public class ObjectContact extends Contact {
         return normal;
     }
 
-    public float getDepth() {
+    public double getDepth() {
         return depth;
     }
 
-    public float getClosingVelocityOnNormal() {
+    public double getClosingVelocityOnNormal() {
         return closingVelocity.getX();
     }
 
@@ -66,7 +86,7 @@ public class ObjectContact extends Contact {
         return closingAccVelocity;
     }
 
-    public float getDeltaVelocity() {
+    public double getDeltaVelocity() {
         return deltaVelocity;
     }
 
@@ -86,11 +106,11 @@ public class ObjectContact extends Contact {
         return toLocal.product(v);
     }
 
-    public float getFriction() {
+    public double getFriction() {
         return friction;
     }
 
-    public float getRestitution() {
+    public double getRestitution() {
         return restitution;
     }
 
@@ -107,6 +127,8 @@ public class ObjectContact extends Contact {
 
                 Vector3 deltaPoint = Vector3.sum(linearChange[j], Vector3.cross(angularChange[j], offsets[i]));
                 depth += Vector3.dot(deltaPoint, normal)*sign[i];
+                if (ContactResolver.DEBUG_INTERPENETRATIONS)
+                    System.out.println("depth updated "+toString());
             }
     }
 
@@ -120,12 +142,14 @@ public class ObjectContact extends Contact {
                 Vector3 deltaVelocity = Vector3.sum(linearChange[j], Vector3.cross(angularChange[j], offsets[i]));
                 closingVelocity.add(toLocal(deltaVelocity).scaled(sign[i]));
                 calcDeltaVelocity();
+                if (ContactResolver.DEBUG_VELOCITYCHANGE)
+                    System.out.println("closingVelocity updated "+toString());
             }
     }
 
-    public void calcInternals(float tick) {
+    public void calcInternals(double tick) {
         friction = Material.getFriction(material1, material2);
-        restitution = 0.1f;//Material.getRestitution(material1, material2);
+        restitution = Material.getRestitution(material1, material2);
 
         toGlobal = ONB.getFromXAxis(normal).toMatrix();
         toLocal = toGlobal.getTransposed();
@@ -161,6 +185,6 @@ public class ObjectContact extends Contact {
         String cp = (point == null?"null":point.toString());
         String n = (normal == null?"null":normal.toString());
 
-        return "ObjectContact:["+obj+"ContactPoint:"+cp+", normal:"+n+", depth:"+depth+"]";
+        return "ObjectContact:["+obj+"point:"+cp+", normal:"+n+", depth:"+depth+", closingVelocity:"+closingVelocity+"]";
     }
 }

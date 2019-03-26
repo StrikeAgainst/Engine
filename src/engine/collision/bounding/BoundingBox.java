@@ -33,7 +33,7 @@ public class BoundingBox extends SimpleBounding {
         return halfSize;
     }
 
-    public float transformToAxis(Vector3 axis) {
+    public double transformToAxis(Vector3 axis) {
         return halfSize.getX() * Math.abs(Vector3.dot(axis, new Vector3(getAxis(0))))
              + halfSize.getY() * Math.abs(Vector3.dot(axis, new Vector3(getAxis(1))))
              + halfSize.getZ() * Math.abs(Vector3.dot(axis, new Vector3(getAxis(2))));
@@ -90,27 +90,27 @@ public class BoundingBox extends SimpleBounding {
         return vertices;
     }
 
-    public float getXUpperBound() {
+    public double getXUpperBound() {
         return getPosition().getX()+transformToAxis(new Vector3(1, 0, 0));
     }
 
-    public float getXLowerBound() {
+    public double getXLowerBound() {
         return getPosition().getX()-transformToAxis(new Vector3(1, 0, 0));
     }
 
-    public float getYUpperBound() {
+    public double getYUpperBound() {
         return getPosition().getY()+transformToAxis(new Vector3(0, 1, 0));
     }
 
-    public float getYLowerBound() {
+    public double getYLowerBound() {
         return getPosition().getY()-transformToAxis(new Vector3(0, 1, 0));
     }
 
-    public float getZUpperBound() {
+    public double getZUpperBound() {
         return getPosition().getZ()+transformToAxis(new Vector3(0, 0, 1));
     }
 
-    public float getZLowerBound() {
+    public double getZLowerBound() {
         return getPosition().getZ()-transformToAxis(new Vector3(0, 0, 1));
     }
 
