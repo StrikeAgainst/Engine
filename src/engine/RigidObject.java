@@ -1,10 +1,10 @@
 package engine;
 
-import com.jogamp.opengl.GL2;
-import com.jogamp.opengl.util.gl2.GLUT;
-
 import core.*;
+import engine.collision.BroadPhaseContact;
 import engine.collision.Contact;
+import engine.collision.ContactProperties;
+import engine.collision.ObjectContact;
 import engine.collision.bounding.*;
 
 import java.util.ArrayList;
@@ -15,19 +15,13 @@ public abstract class RigidObject extends Collidable {
 	
 	protected int id;
 	protected boolean visible = true;
-	protected static double friction, restitution;
 
 	protected Vector3 velocity = new Vector3(), lastVelocity = new Vector3(), acceleration = new Vector3(), lastAcceleration = new Vector3(), rotation = new Vector3(), totalForce = new Vector3(), totalTorque = new Vector3();
 	protected Transformation transformation;
+	protected InertiaTensor inertiaTensor = null;
 	protected ObjectBounding bounding = null;
-	protected Material material = null;
-	protected double inverseMass = 0;
 	protected boolean internalsUpdated = false;
 	protected RGB color = null, gridColor = null;
-
-	public RigidObject(Point3 position, Quaternion orientation) {
-		this(new Transformation(position, orientation));
-	}
 
     public RigidObject(Transformation transformation) {
         this.id = RigidObject.ID_INCREMENT++;
@@ -40,36 +34,61 @@ public abstract class RigidObject extends Collidable {
 			this.bounding = bounding;
 	}
 
-	protected abstract void draw(GL2 gl, GLUT glut);
-
-	protected abstract void drawTransformed(GL2 gl, GLUT glut);
-
-	public void render(GL2 gl, GLUT glut) {
-		if (visible) {
-			this.draw(gl, glut);
-			if (bounding != null && BroadPhase.VISIBLE)
-				bounding.getBroadPhase().render(gl, glut);
-
-			gl.glPushMatrix();
-			gl.glMultMatrixd(transformation.getMatrix().getDataLinear(false, true), 0);
-
-			this.drawTransformed(gl, glut);
-			if (bounding != null)
-				bounding.render(gl, glut);
-
-			gl.glPopMatrix();
-
-		}
-	}
-
 	public void update(double tick) {
 		internalsUpdated = false;
+
+		if (inverseMass == 0) {
+			lastAcceleration.nullify();
+			acceleration.nullify();
+			lastVelocity.nullify();
+			velocity.nullify();
+			rotation.nullify();
+		} else {
+			lastAcceleration = acceleration;
+			lastAcceleration = Vector3.sum(lastAcceleration, totalForce.scaled(inverseMass));
+			lastVelocity = velocity;
+			velocity.add(lastAcceleration.scaled(tick));
+			Point3 position = transformation.getPosition().offset(Vector3.sum(lastVelocity.scaled(tick), lastAcceleration.scaled(tick * tick / 2)));
+
+			Vector3 angularAcc = inertiaTensor.productInverseGlobal(totalTorque);
+			rotation.add(angularAcc.scaled(tick));
+			Quaternion orientation = transformation.getOrientation().sum(rotation.scaled(tick));
+
+			set(position, orientation);
+
+			if (!velocity.isNull() || !rotation.isNull())
+				updateInternals();
+		}
+
+		totalForce.nullify();
+		totalTorque.nullify();
 	}
 
 	public void updateInternals() {
+		if (inertiaTensor != null)
+			inertiaTensor.updateInverseGlobal(transformation);
+
 		if (bounding != null)
 			bounding.updateAll();
+
 		internalsUpdated = true;
+	}
+
+	public void applyForce(Vector3 force) {
+		totalForce.add(force);
+	}
+
+	public void applyTorque(Vector3 torque) {
+		totalTorque.add(torque);
+	}
+
+	public void applyForce(Vector3 force, Point3 p) {
+		totalForce.add(force);
+		totalTorque.add(Vector3.cross(Vector3.offset(transformation.getPosition(), p), force));
+	}
+
+	public void applyForceLocal(Vector3 force, Point3 p) {
+		applyForce(force, transformation.toGlobal(p));
 	}
 
 	public void destroy() {
@@ -127,10 +146,6 @@ public abstract class RigidObject extends Collidable {
 		return lastVelocity;
 	}
 
-	public void setVelocity(Vector3 velocity) {}
-
-	public void addVelocity(Vector3 velocity) {}
-
 	public Vector3 getPointVelocity(Point3 point) {
 		return Vector3.sum(velocity, Vector3.cross(rotation, Vector3.offset(transformation.getPosition(), point)));
 	}
@@ -147,48 +162,67 @@ public abstract class RigidObject extends Collidable {
 		return lastAcceleration;
 	}
 
-	public void setAcceleration(Vector3 acceleration) {}
-
-	public void addAcceleration(Vector3 acceleration) {}
-
 	public Vector3 getRotation() {
 		return rotation;
 	}
 
-	public void setRotation(Vector3 rotation) {}
-
-	public void addRotation(Vector3 rotation) {}
-
-	public boolean isAccelerating() {
-		return false;
+	public void setVelocity(Vector3 velocity) {
+		this.velocity.set(velocity);
 	}
 
-	public void stop() {}
-
-	public void clearForce() {
-		totalForce.nullify();
+	public void setAcceleration(Vector3 acceleration) {
+		this.acceleration.set(acceleration);
 	}
 
-	public void clearTorque() {
-		totalTorque.nullify();
+	public void setRotation(Vector3 rotation) {
+		this.rotation.set(rotation);
+	}
+
+	public void addVelocity(Vector3 velocity) {
+		this.velocity.add(velocity);
+	}
+
+	public void addAcceleration(Vector3 acceleration) {
+		this.acceleration.add(acceleration);
+	}
+
+	public void addRotation(Vector3 rotation) {
+		this.rotation.add(rotation);
+	}
+
+	public void stop() {
+		velocity.nullify();
+		acceleration.nullify();
+		rotation.nullify();
 	}
 
 	public double getMass() {
-		return Double.POSITIVE_INFINITY;
+		if (inverseMass == 0)
+			return Double.POSITIVE_INFINITY;
+		return 1/inverseMass;
 	}
 
-	public double getInverseMass() {
-		return inverseMass;
+	public InertiaTensor getInertiaTensor() {
+		return inertiaTensor;
 	}
 
 	public ArrayList<Contact> contactsWith(Collidable collidable) {
-		if (collidable instanceof PhysicalObject)
-			return collidable.contactsWith(this);
-		return new ArrayList<>();
-	}
+		ArrayList<Contact> contacts = new ArrayList<>();
+		if (bounding == null || collidable.getBounding() == null || (immovable() && collidable.immovable()))
+			return contacts;
 
-	public boolean isGravitated() {
-		return false;
+		if (collidable instanceof RigidObject) {
+			BroadPhaseContact broadphaseContact = bounding.broadphaseContactWith(((RigidObject) collidable).getBounding());
+			if (broadphaseContact == null)
+				return contacts;
+
+			//contacts.add(broadphaseContact);
+		}
+
+		for (ContactProperties properties : bounding.contactsWith(collidable.getBounding()))
+			contacts.add(new ObjectContact(this, collidable, properties));
+
+		return contacts;
 	}
 
 	public boolean internalsUpdated() {
@@ -232,7 +266,11 @@ public abstract class RigidObject extends Collidable {
 	}
 	
 	public String getAttributesString() {
-		return "transformation="+transformation.toString();
+		String attributes = "transformation="+transformation.toString();
+		if (!immovable())
+			attributes += ",velocity="+velocity.toString()+",acceleration="+acceleration.toString();
+
+		return attributes;
 	}
 	
 	public String toString() {

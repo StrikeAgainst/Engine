@@ -80,6 +80,13 @@ public class Quaternion {
         this.k = q.getK();
     }
 
+    public void nullify() {
+        this.r = 1;
+        this.i = 0;
+        this.j = 0;
+        this.k = 0;
+    }
+
     public void normalize() {
         set(getNormalized());
     }

@@ -6,7 +6,7 @@ import core.Point3;
 import core.RGB;
 import engine.collision.BroadPhaseContact;
 import engine.collision.Contact;
-import engine.collision.ContactContainer;
+import engine.collision.ContactRegistry;
 import engine.collision.ContactDetector;
 import main.Renderer;
 
@@ -54,7 +54,7 @@ public class BroadPhase extends Bounding {
     }
 
     public boolean inContact() {
-        for (Contact c : ContactContainer.get())
+        for (Contact c : ContactRegistry.get())
             if (c.involves(this))
                 return true;
 

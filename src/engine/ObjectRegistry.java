@@ -8,18 +8,18 @@ import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 import engine.collision.Octree;
 
-public class ObjectContainer extends Observable implements Iterable<RigidObject> {
+public class ObjectRegistry extends Observable implements Iterable<RigidObject> {
 	
-	private static ObjectContainer container = null;
+	private static ObjectRegistry registry = null;
 	private Octree octree = Octree.get();
 	private ArrayList<RigidObject> objects = new ArrayList<>();
 	
-	private ObjectContainer() {}
+	private ObjectRegistry() {}
 	
-	public static ObjectContainer get() {
-		if (container == null)
-			container = new ObjectContainer();
-		return container;
+	public static ObjectRegistry get() {
+		if (registry == null)
+			registry = new ObjectRegistry();
+		return registry;
 	}
 
 	public void render(GL2 gl, GLUT glut) {

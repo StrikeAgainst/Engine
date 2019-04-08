@@ -38,6 +38,15 @@ public class Matrix3x3 extends Matrix {
         });
     }
 
+    public static Matrix3x3 getOuterProduct(Vector3 v, Vector3 w) {
+        double vx = v.getX(), vy = v.getY(), vz = v.getZ(), wx = w.getX(), wy = w.getY(), wz = w.getZ();
+        return new Matrix3x3(new double[][] {
+                {vx*wx,vy*wx,vz*wx},
+                {vx*wy,vy*wy,vz*wy},
+                {vx*wz,vy*wz,vz*wz}
+        });
+    }
+
     public Matrix3x3 sum(Matrix3x3 m) {
         double[][] mData = m.getData();
         return new Matrix3x3(new double[][] {
@@ -145,6 +154,8 @@ public class Matrix3x3 extends Matrix {
             System.out.println("Determinant equals zero! " + toString());
             System.exit(0);
         }
+
+        det = 1/det;
 
         return new double[][] {
                 {

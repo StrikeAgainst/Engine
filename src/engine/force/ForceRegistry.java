@@ -1,6 +1,6 @@
 package engine.force;
 
-import engine.PhysicalObject;
+import engine.RigidObject;
 
 import java.util.ArrayList;
 
@@ -17,17 +17,36 @@ public class ForceRegistry {
         return registry;
     }
 
-    public void add(PhysicalObject o, ForceGenerator gen) {
+    public void add(RigidObject o, ForceGenerator gen) {
         registrations.add(new ForceRegistration(o, gen));
     }
 
-    public void remove(PhysicalObject o, ForceGenerator gen) {
-        for (ForceRegistration reg : registrations) {
+    public boolean has(RigidObject o, ForceGenerator gen) {
+        for (ForceRegistration reg : registrations)
+            if (reg.matches(o, gen))
+                return true;
+
+        return false;
+    }
+
+    public void remove(RigidObject o, ForceGenerator gen) {
+        for (ForceRegistration reg : registrations)
             if (reg.matches(o, gen)) {
                 registrations.remove(reg);
                 break;
             }
-        }
+    }
+
+    public void pause(RigidObject o) {
+        for (ForceRegistration reg : registrations)
+            if (reg.matches(o))
+                reg.pause();
+    }
+
+    public void resume(RigidObject o) {
+        for (ForceRegistration reg : registrations)
+            if (reg.matches(o))
+                reg.resume();
     }
 
     public void clear() {
@@ -35,25 +54,46 @@ public class ForceRegistry {
     }
 
     public void updateForces(double tick) {
-        for (ForceRegistration reg : registrations) {
-            reg.getGenerator().updateForce(reg.getObject(), tick);
-        }
+        for (ForceRegistration reg : registrations)
+            if (!reg.paused())
+                reg.getGenerator().updateForce(reg.getObject(), tick);
     }
 
     public class ForceRegistration {
-        private PhysicalObject o;
+        private RigidObject o;
         private ForceGenerator gen;
+        private boolean paused = false;
 
-        public ForceRegistration(PhysicalObject o, ForceGenerator gen) {
+        public ForceRegistration(RigidObject o, ForceGenerator gen) {
             this.o = o;
             this.gen = gen;
         }
 
-        public boolean matches(PhysicalObject o, ForceGenerator gen) {
-            return (this.o == o && this.gen == gen);
+        public boolean matches(RigidObject o) {
+            return (this.o == o);
         }
 
-        public PhysicalObject getObject() {
+        public boolean matches(ForceGenerator gen) {
+            return (this.gen == gen);
+        }
+
+        public boolean matches(RigidObject o, ForceGenerator gen) {
+            return (matches(o) && matches(gen));
+        }
+
+        public boolean paused() {
+            return paused;
+        }
+
+        public void pause() {
+            paused = true;
+        }
+
+        public void resume() {
+            paused = false;
+        }
+
+        public RigidObject getObject() {
             return o;
         }
 

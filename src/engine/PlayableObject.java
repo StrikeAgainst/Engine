@@ -1,28 +1,26 @@
 package engine;
 
 import core.Point3;
-import core.Quaternion;
 
-public abstract class PlayableObject extends PhysicalObject {
+public abstract class PlayableObject extends SimpleObject {
 
-	protected static double restitution = 0;
 	public Player player;
 
-	public PlayableObject(Point3 position, Quaternion orientation, double mass) {
-		super(position, orientation, mass);
+	public PlayableObject(Transformation transformation, double mass) {
+		super(transformation, mass);
 	}
 
-	public PlayableObject(Point3 position, Quaternion orientation, double mass, InertiaTensor inertiaTensor) {
-		super(position, orientation, mass, inertiaTensor);
+	public PlayableObject(Transformation transformation, double mass, InertiaTensor inertiaTensor) {
+		super(transformation, mass, inertiaTensor);
 	}
 
-	public PlayableObject(Player player, Point3 position, Quaternion orientation, double mass) {
-		this(position, orientation, mass);
+	public PlayableObject(Player player, Transformation transformation, double mass) {
+		this(transformation, mass);
 		attachPlayer(player);
 	}
 
-	public PlayableObject(Player player, Point3 position, Quaternion orientation, double mass, InertiaTensor inertiaTensor) {
-		this(position, orientation, mass, inertiaTensor);
+	public PlayableObject(Player player, Transformation transformation, double mass, InertiaTensor inertiaTensor) {
+		this(transformation, mass, inertiaTensor);
 		attachPlayer(player);
 	}
 	

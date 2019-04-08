@@ -8,6 +8,7 @@ import core.RGB;
 import engine.PlayableObject;
 import core.Quaternion;
 import core.Point3;
+import engine.Transformation;
 
 public class Pawn extends PlayableObject {
 
@@ -15,7 +16,7 @@ public class Pawn extends PlayableObject {
     protected RGB color = new RGB(0, 0.5, 0);
 
     public Pawn(Point3 position, double yaw, double height, double radius) {
-        super(position, Quaternion.fromYaw(yaw), 2);
+        super(new Transformation(position, Quaternion.fromYaw(yaw)), 2);
         this.height = height;
         this.radius = radius;
     }

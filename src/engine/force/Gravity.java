@@ -1,6 +1,6 @@
 package engine.force;
 
-import engine.PhysicalObject;
+import engine.RigidObject;
 import core.Vector3;
 import engine.Physics;
 
@@ -16,7 +16,7 @@ public class Gravity implements ForceGenerator {
         this.gravity = gravity;
     }
 
-    public void updateForce(PhysicalObject o, double tick) {
+    public void updateForce(RigidObject o, double tick) {
         o.applyForce(gravity.scaled(o.getMass()));
     }
 

@@ -2,6 +2,7 @@ package main;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
+import core.RGB;
 import core.Vector3;
 import engine.*;
 import engine.force.Drag;
@@ -18,15 +19,12 @@ import java.util.Random;
 public enum Scenario implements KeyListener {
     Maze {
         private int boardSize = 8;
-        private double panelSize = 1, wallHeight = 0.8, wallStrength = 0.1, tiltFactor = 0.5, tiltGravity;
+        private double panelSize = 1, totalSize = boardSize*panelSize, center = panelSize+totalSize/2, wallHeight = 0.8, wallStrength = 0.1, tiltFactor = 0.5, tiltGravity;
         private Ball ball;
         private Gravity gravity = new Gravity();
         private Drag drag = new Drag();
 
         public void init() {
-            ground = new Ground(new Vector3(0, 0, 1), 0);
-            ground.setMaterial(Material.Metal);
-
             ball = ObjectFactory.createBall(new Point3(1.5, 1.5, 2), 0.4, 3, Material.Metal);
             ForceRegistry.get().add(ball, gravity);
             ForceRegistry.get().add(ball, drag);
@@ -36,22 +34,27 @@ public enum Scenario implements KeyListener {
             main.Maze m = main.Maze.createRandomMaze(boardSize);
             boolean[][] south = m.getSouth(), east = m.getEast();
 
+            Box box = ObjectFactory.createImmovableBox(new Point3(center, center, -wallStrength/2), new Vector3(totalSize, totalSize, wallStrength), Material.Metal);
+            box.setColor(new RGB(0.2, 0.2, 0.2));
+
             for (int i = 0; i <= boardSize; i++) {
                 x = i*panelSize;
                 for (int j = 0; j <= boardSize; j++) {
                     y = j*panelSize;
 
-                    if (south[j][i] && j > 0 && (i < boardSize || j < boardSize))
-                        ObjectFactory.createPlatform(new Point3(x + panelSize, y + halfPanelSize, halfWallHeight), new Vector3(wallStrength, panelSize, wallHeight), Material.Metal);
-                    if (east[j][i] && i > 0)
-                        ObjectFactory.createPlatform(new Point3(x + halfPanelSize, y + panelSize, halfWallHeight), new Vector3(panelSize, wallStrength, wallHeight), Material.Metal);
+                    if (south[j][i] && j > 0 && (i < boardSize || j < boardSize)) {
+                        box = ObjectFactory.createImmovableBox(new Point3(x + panelSize, y + halfPanelSize, halfWallHeight), new Vector3(wallStrength, panelSize, wallHeight), Material.Metal);
+                    }
+                    if (east[j][i] && i > 0) {
+                        box = ObjectFactory.createImmovableBox(new Point3(x + halfPanelSize, y + panelSize, halfWallHeight), new Vector3(panelSize, wallStrength, wallHeight), Material.Metal);
+                    }
                 }
             }
         }
+
         public Player initPlayer() {
-            double size = boardSize*panelSize, center = panelSize+size/2;
             Player player = new Player(perspective);
-            player.setPosition(new Point3(center, center, size));
+            player.setPosition(new Point3(center, center, totalSize));
             player.setCameraYaw(Math.PI);
             player.setCameraPitch(Math.PI/2);
             return player;
@@ -104,7 +107,7 @@ public enum Scenario implements KeyListener {
         public String description() {
             return "Use the arrow keys to tilt gravity, and try to steer the ball out of the maze.";
         }
-    }, Impact{
+    }, Impact {
         private Ball comet;
 
         public void init() {
@@ -177,10 +180,10 @@ public enum Scenario implements KeyListener {
             ground = new Ground(new Vector3(0, 0, 1), 0);
             ground.setMaterial(Material.Metal);
 
-            ObjectFactory.createPlatform(new Point3(halfLength+thickness, 0, halfHeight), new Vector3(thickness, width+thickness, height), Material.Metal);
-            ObjectFactory.createPlatform(new Point3(-halfLength-thickness, 0, halfHeight), new Vector3(thickness, width+thickness, height), Material.Metal);
-            ObjectFactory.createPlatform(new Point3(0, halfWidth+thickness, halfHeight), new Vector3(length+thickness, thickness, height), Material.Metal);
-            ObjectFactory.createPlatform(new Point3(0, -halfWidth-thickness, halfHeight), new Vector3(length+thickness, thickness, height), Material.Metal);
+            ObjectFactory.createImmovableBox(new Point3(halfLength+thickness, 0, halfHeight), new Vector3(thickness, width+thickness, height), Material.Metal);
+            ObjectFactory.createImmovableBox(new Point3(-halfLength-thickness, 0, halfHeight), new Vector3(thickness, width+thickness, height), Material.Metal);
+            ObjectFactory.createImmovableBox(new Point3(0, halfWidth+thickness, halfHeight), new Vector3(length+thickness, thickness, height), Material.Metal);
+            ObjectFactory.createImmovableBox(new Point3(0, -halfWidth-thickness, halfHeight), new Vector3(length+thickness, thickness, height), Material.Metal);
         }
 
         public Player initPlayer() {
@@ -254,7 +257,7 @@ public enum Scenario implements KeyListener {
     }, DEBUG {
         private Box box1, box2;
         private Ball ball1, ball2;
-        private PhysicalObject monitored;
+        private RigidObject monitored;
         protected Gravity gravity = new Gravity();
 
         public void init() {
@@ -276,7 +279,7 @@ public enum Scenario implements KeyListener {
             strings.add(monitored.toString());
             strings.add("Rotation: "+monitored.getRotation().toString());
 
-            //strings.addAll(Arrays.asList(ContactContainer.get().toStringArray()));
+            //strings.addAll(Arrays.asList(ContactRegistry.get().toStringArray()));
             return strings;
         }
 

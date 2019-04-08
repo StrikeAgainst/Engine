@@ -56,12 +56,6 @@ public class Vector3 extends Scalar3{
 	public Vector3 scaled(double s) {
 		return new Vector3(x*s, y*s, z*s);
 	}
-	
-	public void scale(double s) {
-		this.x *= s;
-		this.y *= s;
-		this.z *= s;
-	}
 
 	public Vector3 product(Matrix3x3 m) {
 		double[][] mData = m.getData();
@@ -107,17 +101,9 @@ public class Vector3 extends Scalar3{
 	public boolean isNull() {
 		return (this.x == 0 && this.y == 0 && this.z == 0);
 	}
-
-    public void nullify() {
-		this.x = 0;
-		this.y = 0;
-		this.z = 0;
-	}
 	
 	public void revert() {
-		x = -x;
-		y = -y;
-		z = -z;
+		set(getReverse());
 	}
 	
 	public Vector3 getReverse() {

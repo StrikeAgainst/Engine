@@ -11,21 +11,29 @@ import java.util.ArrayList;
 
 public class AssembledBounding extends ObjectBounding {
 
-    private ArrayList<SimpleBounding> boundings;
+    private ArrayList<ObjectBounding> boundings;
 
-    public AssembledBounding(RigidObject object, ArrayList<SimpleBounding> boundings) {
+    public AssembledBounding(RigidObject object, ArrayList<ObjectBounding> boundings) {
         super(object);
         this.boundings = boundings;
     }
 
     public void renderSub(GL2 gl, GLUT glut) {
-        for (SimpleBounding b : boundings)
+        for (ObjectBounding b : boundings)
             b.renderSub(gl, glut);
+    }
+
+    public void add(ObjectBounding bounding) {
+        boundings.add(bounding);
+    }
+
+    public void remove(ObjectBounding bounding) {
+        boundings.remove(bounding);
     }
 
     public ArrayList<ContactProperties> contactsWith(CollidableBounding bounding) {
         ArrayList<ContactProperties> contacts = new ArrayList<>();
-        for (SimpleBounding b : boundings)
+        for (ObjectBounding b : boundings)
             contacts.addAll(bounding.contactsWith(b));
 
         return contacts;
@@ -33,14 +41,14 @@ public class AssembledBounding extends ObjectBounding {
 
     public ArrayList<Point3> contactsWith(Point3 origin, Vector3 line) {
         ArrayList<Point3> points = new ArrayList<>();
-        for (SimpleBounding b : boundings)
+        for (ObjectBounding b : boundings)
             points.addAll(b.contactsWith(origin, line));
 
         return points;
     }
 
     public boolean comprises(Bounding bounding) {
-        for (SimpleBounding b : boundings)
+        for (ObjectBounding b : boundings)
             if (b.comprises(bounding))
                 return true;
 
@@ -48,17 +56,17 @@ public class AssembledBounding extends ObjectBounding {
     }
 
     public void update() {
-        for (SimpleBounding b : boundings)
+        for (ObjectBounding b : boundings)
             b.update();
     }
 
-    public ArrayList<SimpleBounding> getBoundings() {
+    public ArrayList<ObjectBounding> getBoundings() {
         return boundings;
     }
 
     public double getXUpperBound() {
         double max = Double.NEGATIVE_INFINITY;
-        for (SimpleBounding b : boundings) {
+        for (ObjectBounding b : boundings) {
             double bound = b.getXUpperBound();
             if (max < bound)
                 max = bound;
@@ -69,7 +77,7 @@ public class AssembledBounding extends ObjectBounding {
 
     public double getXLowerBound() {
         double min = Double.POSITIVE_INFINITY;
-        for (SimpleBounding b : boundings) {
+        for (ObjectBounding b : boundings) {
             double bound = b.getXLowerBound();
             if (min > bound)
                 min = bound;
@@ -80,7 +88,7 @@ public class AssembledBounding extends ObjectBounding {
 
     public double getYUpperBound() {
         double max = Double.NEGATIVE_INFINITY;
-        for (SimpleBounding b : boundings) {
+        for (ObjectBounding b : boundings) {
             double bound = b.getYUpperBound();
             if (max < bound)
                 max = bound;
@@ -91,7 +99,7 @@ public class AssembledBounding extends ObjectBounding {
 
     public double getYLowerBound() {
         double min = Double.POSITIVE_INFINITY;
-        for (SimpleBounding b : boundings) {
+        for (ObjectBounding b : boundings) {
             double bound = b.getYLowerBound();
             if (min > bound)
                 min = bound;
@@ -102,7 +110,7 @@ public class AssembledBounding extends ObjectBounding {
 
     public double getZUpperBound() {
         double max = Double.NEGATIVE_INFINITY;
-        for (SimpleBounding b : boundings) {
+        for (ObjectBounding b : boundings) {
             double bound = b.getZUpperBound();
             if (max < bound)
                 max = bound;
@@ -113,7 +121,7 @@ public class AssembledBounding extends ObjectBounding {
 
     public double getZLowerBound() {
         double min = Double.POSITIVE_INFINITY;
-        for (SimpleBounding b : boundings) {
+        for (ObjectBounding b : boundings) {
             double bound = b.getZLowerBound();
             if (min > bound)
                 min = bound;

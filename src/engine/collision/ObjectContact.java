@@ -6,7 +6,6 @@ import com.jogamp.opengl.util.gl2.GLUT;
 import core.*;
 import engine.Collidable;
 import engine.Material;
-import engine.PhysicalObject;
 import engine.RigidObject;
 import engine.collision.bounding.CollidableBounding;
 
@@ -15,7 +14,7 @@ public class ObjectContact extends Contact {
     public static boolean VISIBLE = false;
     public static final double CLOSING_VELOCITY_MIN_LIMIT = 0.1; //todo: adjust
 
-    protected PhysicalObject[] objects = new PhysicalObject[2];
+    protected RigidObject[] objects;
     protected Vector3[] offsets = new Vector3[2], velocities = new Vector3[2], accVelocities = new Vector3[2];
     protected Material material1, material2;
 
@@ -31,15 +30,14 @@ public class ObjectContact extends Contact {
         this.depth = properties.depth;
     }
 
-    public ObjectContact(PhysicalObject object, Collidable collidable, ContactProperties properties) {
-        this(object.getBounding(), collidable.getBounding(), properties);
-        material1 = object.getMaterial();
-        material2 = collidable.getMaterial();
-
-        if (collidable instanceof PhysicalObject)
-            this.objects = new PhysicalObject[]{object, (PhysicalObject) collidable};
-        else
-            this.objects = new PhysicalObject[] {object};
+    public ObjectContact(Collidable collidable1, Collidable collidable2, ContactProperties properties) {
+        this(collidable1.getBounding(), collidable2.getBounding(), properties);
+        material1 = collidable1.getMaterial();
+        material2 = collidable2.getMaterial();
+        this.objects = new RigidObject[] {
+                ((collidable1 instanceof RigidObject && !collidable1.immovable()) ? (RigidObject) collidable1 : null),
+                ((collidable2 instanceof RigidObject && !collidable2.immovable()) ? (RigidObject) collidable2 : null)
+        };
     }
 
     public void render(GL2 gl, GLUT glut) {
@@ -58,7 +56,7 @@ public class ObjectContact extends Contact {
         }
     }
 
-    public PhysicalObject[] getObjects() {
+    public RigidObject[] getObjects() {
         return objects;
     }
 
@@ -118,11 +116,11 @@ public class ObjectContact extends Contact {
         return (this.objects[0] == object || this.objects[1] == object);
     }
 
-    public void updateDepth(PhysicalObject[] objects, Vector3[] linearChange, Vector3[] angularChange) {
+    public void updateDepth(RigidObject[] objects, Vector3[] linearChange, Vector3[] angularChange) {
         int[] sign = new int[] {-1, 1};
         for (int i = 0; i < this.objects.length; i++)
             for (int j = 0; j < objects.length; j++) {
-                if (this.objects[i] != objects[j])
+                if (this.objects[i] != objects[j] || this.objects[i] == null)
                     continue;
 
                 Vector3 deltaPoint = Vector3.sum(linearChange[j], Vector3.cross(angularChange[j], offsets[i]));
@@ -132,11 +130,11 @@ public class ObjectContact extends Contact {
             }
     }
 
-    public void updateClosingVelocity(PhysicalObject[] objects, Vector3[] linearChange, Vector3[] angularChange) {
+    public void updateClosingVelocity(RigidObject[] objects, Vector3[] linearChange, Vector3[] angularChange) {
         int[] sign = new int[] {1, -1};
         for (int i = 0; i < this.objects.length; i++)
             for (int j = 0; j < objects.length; j++) {
-                if (this.objects[i] != objects[j])
+                if (this.objects[i] != objects[j] || this.objects[i] == null)
                     continue;
 
                 Vector3 deltaVelocity = Vector3.sum(linearChange[j], Vector3.cross(angularChange[j], offsets[i]));
@@ -159,6 +157,9 @@ public class ObjectContact extends Contact {
         int[] sign = new int[] {1, -1};
 
         for (int i = 0; i < objects.length; i++) {
+            if (objects[i] == null)
+                continue;
+
             offsets[i] = Vector3.offset(objects[i].getPosition(), point);
 
             accVelocities[i] = toLocal(objects[i].getLastAcceleration().scaled(tick));
@@ -180,7 +181,7 @@ public class ObjectContact extends Contact {
     public String toString() {
         StringBuilder obj = new StringBuilder();
         for (int i = 0; i < objects.length; i++)
-            obj.append("object"+i+": "+objects[i].getNameIDString()+", ");
+            obj.append("object" + i + ": " + (objects[i] == null ? "null" : objects[i].getNameIDString()) + ", ");
 
         String cp = (point == null?"null":point.toString());
         String n = (normal == null?"null":normal.toString());

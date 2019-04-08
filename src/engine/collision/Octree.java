@@ -10,7 +10,6 @@ import core.Point3;
 import core.Vector3;
 import engine.Config;
 import engine.RigidObject;
-import engine.PhysicalObject;
 import engine.collision.bounding.OctreeBounding;
 
 public class Octree {
@@ -134,7 +133,7 @@ public class Octree {
 	}
 
 	// check all collisions for a given object inside octree structure
-	public ArrayList<Contact> detectContacts(PhysicalObject pobj) {
+	public ArrayList<Contact> detectContacts(RigidObject pobj) {
 		ArrayList<Contact> contacts = new ArrayList<>();
 		Contact contact;
 		

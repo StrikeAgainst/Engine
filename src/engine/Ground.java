@@ -27,6 +27,7 @@ public class Ground extends Collidable {
         this.normal = normal.getNormalized();
         this.offset = offset;
         this.bounding = new BoundingHalfSpace(this.normal, this.offset);
+        this.inverseMass = 0;
     }
 
     public void render(GL2 gl, GLUT glut) {
@@ -71,7 +72,7 @@ public class Ground extends Collidable {
     }
 
     public ArrayList<Contact> contactsWith(Collidable collidable) {
-        if (collidable instanceof PhysicalObject)
+        if (collidable instanceof RigidObject)
             return collidable.contactsWith(this);
         return new ArrayList<>();
     }

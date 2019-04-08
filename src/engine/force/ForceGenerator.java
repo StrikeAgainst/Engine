@@ -1,8 +1,8 @@
 package engine.force;
 
-import engine.PhysicalObject;
+import engine.RigidObject;
 
 public interface ForceGenerator {
 
-    void updateForce(PhysicalObject o, double tick);
+    void updateForce(RigidObject o, double tick);
 }

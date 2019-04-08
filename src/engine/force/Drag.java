@@ -1,6 +1,6 @@
 package engine.force;
 
-import engine.PhysicalObject;
+import engine.RigidObject;
 import engine.Physics;
 
 public class Drag implements ForceGenerator {
@@ -22,7 +22,7 @@ public class Drag implements ForceGenerator {
         this.angular_damping = angular_damping;
     }
 
-    public void updateForce(PhysicalObject o, double tick) {
+    public void updateForce(RigidObject o, double tick) {
         o.getVelocity().scale(Math.pow(linear_damping, tick));
         o.getRotation().scale(Math.pow(angular_damping, tick));
     }

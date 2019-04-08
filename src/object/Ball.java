@@ -5,17 +5,17 @@ import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.gl2.GLUT;
 
 import core.RGB;
-import engine.PhysicalObject;
+import engine.SimpleObject;
 import engine.InertiaTensorFactory;
-import core.Quaternion;
 import core.Point3;
+import engine.Transformation;
 
-public class Ball extends PhysicalObject {
+public class Ball extends SimpleObject {
 	
 	private double radius;
 	
 	public Ball(Point3 position, double radius, double mass) {
-		super(position, new Quaternion(), mass, InertiaTensorFactory.forSphere(mass, radius, true));
+		super(new Transformation(position), mass, InertiaTensorFactory.forSphere(mass, radius, true));
 		this.radius = radius;
 		this.color = RGB.getRandom();
 		this.gridColor = RGB.getRandom();

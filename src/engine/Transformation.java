@@ -10,12 +10,7 @@ public class Transformation {
 
     public Transformation() {
         this(new Point3(), new Quaternion());
-        matrix = new Matrix3x4(new double[][] {
-                {1,0,0},
-                {0,1,0},
-                {0,0,1},
-                {0,0,0}
-        });
+        matrix = Matrix3x4.getIdentity();
     }
 
     public Transformation(Point3 position, Quaternion orientation) {
@@ -97,6 +92,12 @@ public class Transformation {
     public Matrix3x3 getOrientationMatrix() {
         double[][] data = matrix.getData();
         return new Matrix3x3(new double[][] {data[0],data[1],data[2]});
+    }
+
+    public void reset() {
+        position.nullify();
+        orientation.nullify();
+        update();
     }
 
     public void set(Point3 p, Quaternion q) {

@@ -15,8 +15,8 @@ public class Engine implements KeyListener {
 
     private static ArrayList<String> renderTextQueue = new ArrayList<>();
 
-    private ObjectContainer objects = ObjectContainer.get();
-    private ContactContainer contacts = ContactContainer.get();
+    private ObjectRegistry objects = ObjectRegistry.get();
+    private ContactRegistry contacts = ContactRegistry.get();
     private Octree octree = Octree.get();
     private ForceRegistry forces = ForceRegistry.get();
 

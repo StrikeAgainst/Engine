@@ -17,7 +17,7 @@ import java.util.ArrayList;
 public class Player implements KeyListener, MouseMotionListener {
 
 	private Robot robot;
-	private static final double SENSITIVITY = 0.15, walk_speed = 1.0, sprint_speed = 2.0, jump_force = 1.0, picking_range = 3.0;
+	private static final double SENSITIVITY = 0.15, walk_speed = 1.0, sprint_speed = 2.0, diagonal_speed_factor = 1/Math.sqrt(2), jump_force = 1.0, picking_range = 3.0;
 
 	private double mouseXCenter, mouseYCenter;
 	private Point3 position = new Point3(Config.INIT_PLAYER_POS);
@@ -27,8 +27,7 @@ public class Player implements KeyListener, MouseMotionListener {
 	private boolean controlsEnabled = true, mouseControlsEnabled = false, zeroGravityControlsEnabled = true, mouseYInverted = false, noClip = false, sprinting = false;
 
 	private PickedForce pickedForce = new PickedForce(this);
-	private RigidObject aimedObject = null;
-	private PhysicalObject pickedObject = null;
+	private RigidObject aimedObject = null, pickedObject = null;
 	private PlayableObject playerObject, buffer;
 	private Perspective perspective;
 	
@@ -93,18 +92,20 @@ public class Player implements KeyListener, MouseMotionListener {
 	public void control(double tick) {
 		Vector3 velocity = getVelocity();
 		double speed = ((sprinting && xMove > 0) ? sprint_speed : walk_speed);
-		double rootFactor = 1 / Math.max(1, Math.sqrt((xMove == 0 ? 0 : 1) + (yMove == 0 ? 0 : 1)));
+		double rootFactor = (xMove == 0 || yMove == 0 ? 1 : diagonal_speed_factor);
 		double speedFactor = rootFactor * speed;
 
 		double x = (cosYaw * xMove - sinYaw * yMove) * speedFactor;
 		double y = (cosYaw * yMove + sinYaw * xMove) * speedFactor;
-		double z = velocity.getZ();
+		/*double z = velocity.getZ();
 
 		if (isGravitated()) {
 			if (playerObject.hasRestingContact())
 				z = zMove * jump_force;
 		} else if (zeroGravityControlsEnabled)
-			z = zMove * speed;
+			z = zMove * speed;*/
+
+		double z = zMove * speed;
 
 		velocity.set(new Vector3(x, y, z));
 
@@ -117,7 +118,7 @@ public class Player implements KeyListener, MouseMotionListener {
 		RigidObject closest = null;
 		double closestDistance = Double.POSITIVE_INFINITY;
 
-		for (RigidObject object : ObjectContainer.get()) {
+		for (RigidObject object : ObjectRegistry.get()) {
 			ArrayList<Point3> points = object.getBounding().contactsWith(position, line);
 			for (Point3 p : points) {
 				double distance = Vector3.offset(position, p).getEuclideanMagnitude();
@@ -136,10 +137,10 @@ public class Player implements KeyListener, MouseMotionListener {
 		if (pickedObject != null) {
 			ForceRegistry.get().remove(pickedObject, pickedForce);
 			pickedObject = null;
-		} else if (aimedObject != null && aimedObject instanceof PhysicalObject) {
+		} else if (aimedObject != null) {
 			pickedDistance = Vector3.offset(position, aimedObject.getPosition()).getEuclideanMagnitude();
 			if (pickedDistance <= picking_range) {
-				pickedObject = (PhysicalObject) aimedObject;
+				pickedObject = aimedObject;
 				ForceRegistry.get().add(pickedObject, pickedForce);
 			}
 		}
@@ -149,7 +150,7 @@ public class Player implements KeyListener, MouseMotionListener {
 		return aimedObject;
 	}
 
-	public PhysicalObject getPickedObject() {
+	public RigidObject getPickedObject() {
 		return pickedObject;
 	}
 
@@ -401,13 +402,6 @@ public class Player implements KeyListener, MouseMotionListener {
 			this.velocity = velocity;
 		else
 			playerObject.setVelocity(velocity);
-	}
-
-	public boolean isGravitated() {
-		if (isSpectator())
-			return false;
-		else
-			return playerObject.isGravitated();
 	}
 
 	public void setVisible() {

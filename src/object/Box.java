@@ -5,20 +5,20 @@ import com.jogamp.opengl.util.gl2.GLUT;
 
 import core.RGB;
 import core.Vector3;
-import engine.PhysicalObject;
+import engine.SimpleObject;
 import engine.InertiaTensorFactory;
 import core.Point3;
-import core.Quaternion;
+import engine.Transformation;
 import main.Renderer;
 
-public class Box extends PhysicalObject {
+public class Box extends SimpleObject {
 
     private Vector3 size;
     private Point3[] vertexMap, vertices;
     private RGB[] colors = new RGB[] {RGB.getRandom(), RGB.getRandom(), RGB.getRandom(), RGB.getRandom(), RGB.getRandom(), RGB.getRandom()};
 
     public Box(Point3 position, Vector3 size, double mass) {
-        super(position, new Quaternion(), mass, InertiaTensorFactory.forCuboid(mass, size));
+        super(new Transformation(position), mass, InertiaTensorFactory.forCuboid(mass, size));
         this.size = size;
     }
 

@@ -12,7 +12,6 @@ import com.jogamp.opengl.util.Animator;
 import engine.Engine;
 import engine.Player;
 import engine.collision.ContactResolver;
-import engine.collision.ObjectContact;
 
 public class Main extends JFrame implements ActionListener, KeyListener, ChangeListener, ItemListener {
 

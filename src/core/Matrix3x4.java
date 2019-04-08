@@ -13,6 +13,24 @@ public class Matrix3x4 extends Matrix {
         this.data = m.getData();
     }
 
+    public static Matrix3x4 getIdentity() {
+        return new Matrix3x4(new double[][] {
+                {1,0,0},
+                {0,1,0},
+                {0,0,1},
+                {0,0,0}
+        });
+    }
+
+    public static Matrix3x4 getEmpty() {
+        return new Matrix3x4(new double[][] {
+                {0,0,0},
+                {0,0,0},
+                {0,0,0},
+                {0,0,0}
+        });
+    }
+
     public double[][] getHomogenData() {
         double[][] data = new double[4][];
 

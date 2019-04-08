@@ -6,19 +6,18 @@ import com.jogamp.opengl.util.gl2.GLUT;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class ContactContainer implements Iterable<Contact> {
+public class ContactRegistry implements Iterable<Contact> {
 
-    private static ContactContainer container = null;
+    private static ContactRegistry registry = null;
 
     private ArrayList<Contact> contacts = new ArrayList<>();
 
-    private ContactContainer() {}
+    private ContactRegistry() {}
 
-    public static ContactContainer get() {
-        if (container == null)
-            container = new ContactContainer();
-
-        return container;
+    public static ContactRegistry get() {
+        if (registry == null)
+            registry = new ContactRegistry();
+        return registry;
     }
 
     public ArrayList<Contact> getAll() {

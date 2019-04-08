@@ -68,6 +68,18 @@ public abstract class Scalar3 {
         this.z += v.getZ();
     }
 
+    public void scale(double s) {
+        this.x *= s;
+        this.y *= s;
+        this.z *= s;
+    }
+
+    public void nullify() {
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
+    }
+
     public double[] toArray() {
         return new double[] {x, y, z};
     }

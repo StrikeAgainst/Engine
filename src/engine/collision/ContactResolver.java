@@ -2,7 +2,7 @@ package engine.collision;
 
 import core.Matrix3x3;
 import core.Vector3;
-import engine.PhysicalObject;
+import engine.RigidObject;
 import main.Renderer;
 
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class ContactResolver {
             Vector3 normal = contact.getNormal();
             double depth = contact.getDepth();
 
-            PhysicalObject[] objects = contact.getObjects();
+            RigidObject[] objects = contact.getObjects();
             Vector3[] offsets = contact.getOffsets();
             int[] sign = new int[] {1, -1};
 
@@ -69,6 +69,9 @@ public class ContactResolver {
             }
 
             for (int i = 0; i < objects.length; i++) {
+                if (objects[i] == null)
+                    continue;
+
                 inertiaTorque[i] = Vector3.cross(offsets[i], normal);
                 Vector3 angularInertiaComponent = objects[i].getInertiaTensor().productInverseGlobal(inertiaTorque[i]);
                 angularInertiaComponent = Vector3.cross(angularInertiaComponent, offsets[i]);
@@ -84,6 +87,9 @@ public class ContactResolver {
             Vector3[] linearChange = new Vector3[2], angularChange = new Vector3[2];
 
             for (int i = 0; i < objects.length; i++) {
+                if (objects[i] == null)
+                    continue;
+
                 linearMove[i] = sign[i] * move * linearInertia[i];
                 angularMove[i] = sign[i] * move * angularInertia[i];
 
@@ -153,7 +159,7 @@ public class ContactResolver {
                 break;
 
             Vector3 normal = contact.getNormal();
-            PhysicalObject[] objects = contact.getObjects();
+            RigidObject[] objects = contact.getObjects();
             Vector3[] offsets = contact.getOffsets();
             int[] sign = new int[] {1, -1};
 
@@ -171,6 +177,9 @@ public class ContactResolver {
                 double deltaImpulseVelocity = 0;
 
                 for (int i = 0; i < objects.length; i++) {
+                    if (objects[i] == null)
+                        continue;
+
                     Vector3 unitImpulseTorque = Vector3.cross(offsets[i], normal);
                     Vector3 unitImpulseRotation = objects[i].getInertiaTensor().productInverseGlobal(unitImpulseTorque);
                     Vector3 unitImpulseVelocity = Vector3.cross(unitImpulseRotation, offsets[i]);
@@ -186,6 +195,9 @@ public class ContactResolver {
                 Matrix3x3 deltaImpulseVelocity = Matrix3x3.getEmpty();
 
                 for (int i = 0; i < objects.length; i++) {
+                    if (objects[i] == null)
+                        continue;
+
                     Matrix3x3 impulseToTorque = Matrix3x3.getSkewSymmetric(offsets[i]);
 
                     Matrix3x3 unitImpulseTorque = new Matrix3x3(impulseToTorque);
@@ -234,7 +246,6 @@ public class ContactResolver {
                     double frictionPerPlanarImpulse = friction/planarImpulse;
                     impulseContactY *= frictionPerPlanarImpulse;
                     impulseContactZ *= frictionPerPlanarImpulse;
-                    System.out.println("frictionPerPlanarImpulse "+frictionPerPlanarImpulse);
 
                     double[][] data = deltaImpulseVelocityContact.getData();
                     impulseContactX = data[0][0] + data[1][0]*impulseContactY + data[2][0]*impulseContactZ;
@@ -248,6 +259,9 @@ public class ContactResolver {
             Vector3[] linearChange = new Vector3[2], angularChange = new Vector3[2];
 
             for (int i = 0; i < objects.length; i++) {
+                if (objects[i] == null)
+                    continue;
+
                 Vector3 impulsiveTorque = Vector3.cross(offsets[i], impulse).scaled(sign[i]);
 
                 linearChange[i] = impulse.scaled(objects[i].getInverseMass()*sign[i]);
